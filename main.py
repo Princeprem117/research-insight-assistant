@@ -1,6 +1,6 @@
 from app.ingestion.loaders import load_pdf
 from app.ingestion.splitter import split_documents
-
+from app.ingestion.embedder import create_embedding_model
 
 file_path = "data/raw/Emotion_Detection_Learning_Support_Engine_Internship_Report.pdf"
 
@@ -73,5 +73,32 @@ def main():
 
     for page, count in sorted(page_counts.items()):
         print(f"Page {page + 1}: {count} chunks")
+
+    # --------------------------------
+    # 3. Create embedding model
+    # --------------------------------
+
+    embedding_model = create_embedding_model()
+
+    print("\n==============================")
+    print("EMBEDDING")
+    print("==============================")
+
+    text = chunks[0].page_content
+
+    vector = embedding_model.embed_query(text)
+
+    print("Text:")
+    print(text[:500])
+
+    print("\nVector:")
+    print(vector)
+
+    print("\nVector type:")
+    print(type(vector))
+
+    print("\nVector dimensions:")
+    print(len(vector))
+
 if __name__ == "__main__":
     main()
