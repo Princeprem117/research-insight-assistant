@@ -1,0 +1,5 @@
+4.5 Secure Environment Configuration & API Keys 
+API credentials are never hard-coded into the application source. Instead, the Gemini module loads 
+a .env file at runtime using python -dotenv and reads the GEMINI_API_KEY environment 
+variable, following standard secure-configuration practice and allowing t he same codebase to be 
+deployed across different environments without modification.ÿÿÿÿÿÿÿ
