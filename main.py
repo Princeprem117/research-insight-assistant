@@ -2,82 +2,43 @@ from app.ingestion.loaders import load_pdf
 from app.ingestion.splitter import split_documents
 from app.ingestion.embedder import create_embedding_model
 from app.vectorstore.store import create_vector_store
+from app.retrieval.retriever import create_retriever
+
 
 file_path = "data/raw/Emotion_Detection_Learning_Support_Engine_Internship_Report.pdf"
 
+
 def main():
 
-    # --------------------------------
-    # 1. Load the PDF
-    # --------------------------------
-
+    # 1. Load
     documents = load_pdf(file_path)
 
-    print("\n==============================")
-    print("LOADED DOCUMENTS")
-    print("==============================")
+    # 2. Split
+    chunks = split_documents(documents)
 
-    print(f"Number of documents: {len(documents)}")
-
-    for i, document in enumerate(documents[:2]):
-
-        print(f"\n--- Document {i} ---")
-
-        print("Type:")
-        print(type(document))
-
-        print("\nPage content:")
-        print(document.page_content[:500])
-
-        print("\nMetadata:")
-        print(document.metadata)
-
-    # --------------------------------
-    # 2. Split documents
-    # --------------------------------
-
-    chunks = split_documents(
-        documents,
-        chunk_size=1000,
-        chunk_overlap=200,
-    )
-
-    print("\n==============================")
-    print("CHUNKED DOCUMENTS")
-    print("==============================")
-
-    print(f"Number of chunks: {len(chunks)}")
-
-    for i, chunk in enumerate(chunks[:5]):
-
-        print(f"\n--- Chunk {i} ---")
-
-        print("Type:",type(chunk))
-
-        print("\nContent:")
-        print(chunk.page_content[:500])
-
-        print("\nMetadata:")
-        print(chunk.metadata)
-
-        print("\nCharacter count:")
-        print(len(chunk.page_content))
-
-    # --------------------------------
-    # 3. Create embedding model
-    # --------------------------------
-
+    # 3. Embeddings
     embedding_model = create_embedding_model()
 
+    # 4. Vector store
     vector_store = create_vector_store(
-        chunks = chunks, 
-        embedding_model = embedding_model)
+        chunks,
+        embedding_model
+    )
 
-    print("\n==============================")
-    print("VECTOR STORE")
-    print("==============================")
+    # 5. Retriever
+    retriever = create_retriever(vector_store)
 
-    print("vector store created successfully:",vector_store)
+    # 6. Query
+    query = "How does the system detect emotions?"
+
+    results = retriever.invoke(query)
+
+    for i, result in enumerate(results):
+
+        print(f"\n--- Result {i + 1} ---")
+        print(result.page_content)
+        print(result.metadata)
+
 
 if __name__ == "__main__":
     main()
