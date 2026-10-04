@@ -24,7 +24,6 @@ def main():
         chunks,
         embedding_model
     )
-
     # 5. Retriever
     retriever = create_retriever(vector_store)
 
