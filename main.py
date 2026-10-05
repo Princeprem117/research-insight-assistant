@@ -39,5 +39,29 @@ def main():
         print(result.metadata)
 
 
+    from app.generation.llm import create_llm
+
+from app.generation.llm import create_llm
+
+
 if __name__ == "__main__":
     main()
+
+def test_llm():
+
+    llm = create_llm()
+
+    response = llm.invoke(
+        "Explain what emotion detection is in one sentence."
+    )
+
+    print("\n==============================")
+    print("LLM RESPONSE")
+    print("==============================")
+
+    print(response)
+    print("\nCONTENT:")
+    print(response.content)
+
+if __name__ == "__main__":
+    test_llm()
