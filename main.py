@@ -1,8 +1,15 @@
 from app.ingestion.loaders import load_pdf
 from app.ingestion.splitter import split_documents
 from app.ingestion.embedder import create_embedding_model
+
 from app.vectorstore.store import create_vector_store
+
 from app.retrieval.retriever import create_retriever
+
+from app.generation.llm import create_llm
+from app.generation.prompt import create_rag_prompt
+
+from app.rag.chain import create_rag_chain
 
 
 file_path = "data/raw/Emotion_Detection_Learning_Support_Engine_Internship_Report.pdf"
@@ -10,58 +17,52 @@ file_path = "data/raw/Emotion_Detection_Learning_Support_Engine_Internship_Repor
 
 def main():
 
-    # 1. Load
+    # 1. Load documents
     documents = load_pdf(file_path)
 
-    # 2. Split
+    print(f"Loaded documents: {len(documents)}")
+
+    # 2. Split documents
     chunks = split_documents(documents)
 
-    # 3. Embeddings
+    print(f"Created chunks: {len(chunks)}")
+
+    # 3. Create embedding model
     embedding_model = create_embedding_model()
 
-    # 4. Vector store
+    # 4. Create vector store
     vector_store = create_vector_store(
         chunks,
-        embedding_model
+        embedding_model,
     )
-    # 5. Retriever
+
+    # 5. Create retriever
     retriever = create_retriever(vector_store)
 
-    # 6. Query
-    query = "How does the system detect emotions?"
+    # 6. Create LLM
+    llm = create_llm()
 
-    results = retriever.invoke(query)
+    # 7. Create prompt
+    prompt = create_rag_prompt()
 
-    for i, result in enumerate(results):
+    # 8. Create RAG chain
+    rag_chain = create_rag_chain(
+        retriever,
+        prompt,
+        llm,
+    )
 
-        print(f"\n--- Result {i + 1} ---")
-        print(result.page_content)
-        print(result.metadata)
+    # 9. Ask question
+    question = "How does the system detect emotions?"
 
+    answer = rag_chain.invoke(question)
 
-    from app.generation.llm import create_llm
+    print("\n==============================")
+    print("ANSWER")
+    print("==============================")
 
-from app.generation.llm import create_llm
+    print(answer)
 
 
 if __name__ == "__main__":
     main()
-
-def test_llm():
-
-    llm = create_llm()
-
-    response = llm.invoke(
-        "Explain what emotion detection is in one sentence."
-    )
-
-    print("\n==============================")
-    print("LLM RESPONSE")
-    print("==============================")
-
-    print(response)
-    print("\nCONTENT:")
-    print(response.content)
-
-if __name__ == "__main__":
-    test_llm()
