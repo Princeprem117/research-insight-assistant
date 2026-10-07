@@ -57,8 +57,7 @@ def main():
 
     answer = rag_chain.invoke(question)
 
-    print("\n==============================")
-    print("ANSWER")
+    print("\n ANSWER")
     print("==============================")
 
     print(answer)
