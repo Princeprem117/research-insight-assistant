@@ -38,6 +38,22 @@ def main():
 
     # 5. Create retriever
     retriever = create_retriever(vector_store)
+    query = "How does the system detect emotions?"
+
+    retrieved_docs = retriever.invoke(query)
+
+    print("\n==============================")
+    print("RETRIEVED DOCUMENTS")
+    print("==============================")
+
+    for i, doc in enumerate(retrieved_docs):
+        print(f"\n--- Retrieved Document {i + 1} ---")
+
+        print("\nContent:")
+        print(doc.page_content)
+
+        print("\nMetadata:")
+        print(doc.metadata)
 
     # 6. Create LLM
     llm = create_llm()
