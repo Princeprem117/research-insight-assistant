@@ -73,12 +73,17 @@ def main():
     # 9. Ask question
     question = "How does the system detect emotions?"
 
-    answer = rag_chain.invoke(question)
+    result = rag_chain(question)
+    print(result["answer"])
+    print('\n sources:')
+
+    for doc in result["documents"]:
+        print(f"page: {doc.metadata.get('page_label')}")
 
     print("\n ANSWER")
     print("==============================")
 
-    print(answer)
+    print(result)
 
 
 if __name__ == "__main__":
