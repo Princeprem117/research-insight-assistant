@@ -10,7 +10,7 @@ def create_rag_chain(
     llm: ChatOpenRouter,
 ):
 
-    chain = (
+    answer_chain = (
         {
             "context": retriever,
             "question": lambda x: x,
@@ -20,4 +20,10 @@ def create_rag_chain(
         | StrOutputParser()
     )
 
-    return chain
+    def invoke_rag(question: str):
+        documents = retriever.invoke(question)
+        answer = answer_chain.invoke(question)
+
+        return documents, answer
+
+    return invoke_rag
