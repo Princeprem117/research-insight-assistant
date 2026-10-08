@@ -42,6 +42,8 @@ def main():
 
     retrieved_docs = retriever.invoke(query)
 
+    print("Number of retrieved documents:", len(retrieved_docs))
+
     print("\n==============================")
     print("RETRIEVED DOCUMENTS")
     print("==============================")
