@@ -1,6 +1,7 @@
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.retrievers import BaseRetriever
+from langchain_core.runnables import RunnableParallel , RunnablePassthrough
 from langchain_openrouter import ChatOpenRouter
 
 
@@ -13,17 +14,16 @@ def create_rag_chain(
     answer_chain = (
         {
             "context": retriever,
-            "question": lambda x: x,
+            "question": RunnablePassthrough(),
         }
         | prompt
         | llm
         | StrOutputParser()
     )
 
-    def invoke_rag(question: str):
-        documents = retriever.invoke(question)
-        answer = answer_chain.invoke(question)
+    rag_chain = RunnableParallel(
+        answer = answer_chain,
+        documents = retriever,
+    )
 
-        return documents, answer
-
-    return invoke_rag
+    return rag_chain
