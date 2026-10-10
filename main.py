@@ -71,18 +71,18 @@ def main():
     )
 
     # 9. Ask question
-    question = "How does the system detect emotions?"
+    question ={
 
+        "question":"How does the system detect emotions?"
+    }
     result = rag_chain.invoke(question)
+
     print(result["answer"])
     print('\n sources:')
 
     for doc in result["documents"]:
-        source = doc.metadata.get("source", "Unknown source")
-        page = doc.metadata.get("page_label", "Unknown page")
-
-        print(f"Source: {source}")
-        print(f"Page: {page}")
+        print(f"Source: {doc.metadata.get('source', 'Unknown source')}")
+        print(f"Page: {doc.metadata.get('page_label', 'Unknown page')}")
         print(f"Excerpt: {doc.page_content[:250]}...")
 
 
