@@ -12,15 +12,18 @@ from app.generation.prompt import create_rag_prompt
 from app.rag.chain import create_rag_chain
 
 
-file_path = "data/raw/Emotion_Detection_Learning_Support_Engine_Internship_Report.pdf"
+data_directory = "data/raw"
 
 
 def main():
 
     # 1. Load documents
-    documents = load_pdf(file_path)
+    documents = load_pdf(data_directory)
 
     print(f"Loaded documents: {len(documents)}")
+    print(f' PDF source files: {len(set(
+        doc.metadata.get("source") for doc in documents
+    ))}')
 
     # 2. Split documents
     chunks = split_documents(documents)
@@ -38,8 +41,8 @@ def main():
 
     # 5. Create retriever
     retriever = create_retriever(vector_store)
-    query = "How does the system detect emotions?"
-
+    query = " tell me about rag pipeline  ?"
+    
     retrieved_docs = retriever.invoke(query)
 
     print("Number of retrieved documents:", len(retrieved_docs))
@@ -73,7 +76,7 @@ def main():
     # 9. Ask question
     question ={
 
-        "question":"How does the system detect emotions?"
+        "question":" tell me about rag pipeline ?"
     }
     result = rag_chain.invoke(question)
 
