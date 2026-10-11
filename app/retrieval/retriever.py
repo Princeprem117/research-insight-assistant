@@ -6,6 +6,7 @@ def create_retriever(vector_store: Chroma) -> BaseRetriever:
         search_type = "mmr", 
         search_kwargs = {"k": 3,
                          "fetch_k": 10,
+                         "lambda_mult": 0.5,
                          },
     )
 
