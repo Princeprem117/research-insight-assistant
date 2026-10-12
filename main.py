@@ -1,3 +1,4 @@
+from pathlib import Path
 from app.ingestion.loaders import load_pdf
 from app.ingestion.splitter import split_documents
 from app.ingestion.embedder import create_embedding_model
@@ -16,21 +17,23 @@ data_directory = "data/raw"
 
 
 def main():
-
-    # 1. Load documents
+    # 1. Load all PDFs
     documents = load_pdf(data_directory)
 
-    print(f"Loaded documents: {len(documents)}")
-    print(f' PDF source files: {len(set(
-        doc.metadata.get("source") for doc in documents
-    ))}')
+    print(f"Loaded pages: {len(documents)}")
+    print(
+        "PDF source files:",
+        len({
+            doc.metadata.get("source")
+            for doc in documents
+        }),
+    )
 
     # 2. Split documents
     chunks = split_documents(documents)
-
     print(f"Created chunks: {len(chunks)}")
 
-    # 3. Create embedding model
+    # 3. Create embeddings
     embedding_model = create_embedding_model()
 
     # 4. Create vector store
@@ -41,24 +44,6 @@ def main():
 
     # 5. Create retriever
     retriever = create_retriever(vector_store)
-    query = " tell me about rag pipeline  ?"
-    
-    retrieved_docs = retriever.invoke(query)
-
-    print("Number of retrieved documents:", len(retrieved_docs))
-
-    print("\n==============================")
-    print("RETRIEVED DOCUMENTS")
-    print("==============================")
-
-    for i, doc in enumerate(retrieved_docs):
-        print(f"\n--- Retrieved Document {i + 1} ---")
-
-        print("\nContent:")
-        print(doc.page_content)
-
-        print("\nMetadata:")
-        print(doc.metadata)
 
     # 6. Create LLM
     llm = create_llm()
@@ -73,20 +58,44 @@ def main():
         llm,
     )
 
-    # 9. Ask question
-    question ={
+    # 9. Interactive question-answering loop
+    print("\nResearch Insight Assistant is ready!")
+    print("Ask questions about your PDFs.")
+    print("Type 'exit' to stop.\n")
 
-        "question":" tell me about rag pipeline ?"
-    }
-    result = rag_chain.invoke(question)
+    while True:
+        question = input("You: ").strip()
 
-    print(result["answer"])
-    print('\n sources:')
+        if question.lower() in {"exit", "quit"}:
+            print("Goodbye!")
+            break
 
-    for doc in result["documents"]:
-        print(f"Source: {doc.metadata.get('source', 'Unknown source')}")
-        print(f"Page: {doc.metadata.get('page_label', 'Unknown page')}")
-        print(f"Excerpt: {doc.page_content[:250]}...")
+        if not question:
+            continue
+
+        result = rag_chain.invoke(question)
+
+        print("\nAssistant:")
+        print(result["answer"])
+
+        print("\nSources:")
+
+        for i, doc in enumerate(
+            result["documents"],
+            start=1,
+        ):
+            source = Path(
+                doc.metadata.get("source", "Unknown source")
+            ).name
+
+            page = doc.metadata.get(
+                "page_label",
+                doc.metadata.get("page", "Unknown"),
+            )
+
+            print(f"[Source {i}] {source} — Page {page}")
+
+        print("\n" + "-" * 60)
 
 
 if __name__ == "__main__":
