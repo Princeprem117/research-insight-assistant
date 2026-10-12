@@ -1,11 +1,37 @@
+
+from pathlib import Path
+
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.retrievers import BaseRetriever
 from langchain_core.runnables import (
+    RunnableLambda,
     RunnablePassthrough,
-    RunnableParallel,
 )
 from langchain_openrouter import ChatOpenRouter
+
+
+def format_docs(documents):
+    formatted = []
+
+    for i, doc in enumerate(documents, start=1):
+        source = Path(
+            doc.metadata.get("source", "Unknown source")
+        ).name
+
+        page = doc.metadata.get(
+            "page_label",
+            doc.metadata.get("page", "Unknown"),
+        )
+
+        formatted.append(
+            f"[Source {i}]\n"
+            f"File: {source}\n"
+            f"Page: {page}\n"
+            f"Content:\n{doc.page_content}"
+        )
+
+    return "\n\n".join(formatted)
 
 
 def create_rag_chain(
@@ -15,8 +41,12 @@ def create_rag_chain(
 ):
     answer_chain = (
         {
-            "context": lambda x: x["documents"],
-            "question": lambda x: x["question"],
+            "context": RunnableLambda(
+                lambda x: format_docs(x["documents"])
+            ),
+            "question": RunnableLambda(
+                lambda x: x["question"]
+            ),
         }
         | prompt
         | llm
@@ -24,13 +54,18 @@ def create_rag_chain(
     )
 
     rag_chain = (
-        RunnablePassthrough.assign(
-            documents= lambda x: retriever.invoke(x["question"]),
+        RunnableLambda(
+            lambda question: {"question": question}
         )
-        | RunnableParallel(
-            answer=answer_chain,
-            documents=lambda x: x["documents"],
+        | RunnablePassthrough.assign(
+            documents=RunnableLambda(
+                lambda x: retriever.invoke(x["question"])
+            )
+        )
+        | RunnablePassthrough.assign(
+            answer=answer_chain
         )
     )
+
 
     return rag_chain
