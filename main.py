@@ -12,8 +12,23 @@ from app.generation.prompt import create_rag_prompt
 
 from app.rag.chain import create_rag_chain
 
+from langchain_core.chat_history import InMemoryChatMessageHistory
+from langchain_core.runnables.history import RunnableWithMessageHistory
+
 
 data_directory = "data/raw"
+
+
+# In-memory conversation store.
+# Each session ID has its own conversation history.
+store = {}
+
+
+def get_session_history(session_id: str):
+    if session_id not in store:
+        store[session_id] = InMemoryChatMessageHistory()
+
+    return store[session_id]
 
 
 def main():
@@ -58,6 +73,15 @@ def main():
         llm,
     )
 
+    
+    conversational_rag_chain = RunnableWithMessageHistory(
+        rag_chain,
+        get_session_history,
+        input_messages_key="question",
+        history_messages_key="chat_history",
+        output_messages_key="answer",
+    )
+
     # 9. Interactive question-answering loop
     print("\nResearch Insight Assistant is ready!")
     print("Ask questions about your PDFs.")
@@ -73,7 +97,14 @@ def main():
         if not question:
             continue
 
-        result = rag_chain.invoke(question)
+        result = conversational_rag_chain.invoke(
+            {"question": question},
+            config={
+                "configurable": {
+                    "session_id": "research-session"
+                }
+            },
+        )
 
         print("\nAssistant:")
         print(result["answer"])
