@@ -47,6 +47,8 @@ def create_rag_chain(
             "question": RunnableLambda(
                 lambda x: x["question"]
             ),
+            "chat_history": RunnableLambda(lambda x: x["chat_history"]
+        ),
         }
         | prompt
         | llm
