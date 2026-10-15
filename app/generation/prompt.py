@@ -1,5 +1,5 @@
 
-from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.prompts import ChatPromptTemplate , MessagesPlaceholder
 
 
 def create_rag_prompt():
@@ -29,6 +29,7 @@ def create_rag_prompt():
     {context}
     """
             ),
+            MessagesPlaceholder(variable_name="chat_history"),
             ("human", "{question}"),
     ])
 
