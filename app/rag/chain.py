@@ -39,16 +39,16 @@ def create_rag_chain(
     prompt: ChatPromptTemplate,
     llm: ChatOpenRouter,
 ):
+
     answer_chain = (
         {
             "context": RunnableLambda(
                 lambda x: format_docs(x["documents"])
             ),
-            "question": RunnableLambda(
-                lambda x: x["question"]
+            "question": RunnableLambda(get_question_text),
+            "chat_history": RunnableLambda(
+                lambda x: x["chat_history"]
             ),
-            "chat_history": RunnableLambda(lambda x: x["chat_history"]
-        ),
         }
         | prompt
         | llm
@@ -56,12 +56,9 @@ def create_rag_chain(
     )
 
     rag_chain = (
-        RunnableLambda(
-            lambda question: {"question": question}
-        )
-        | RunnablePassthrough.assign(
+        RunnablePassthrough.assign(
             documents=RunnableLambda(
-                lambda x: retriever.invoke(x["question"])
+                lambda x: retriever.invoke(get_question_text(x))
             )
         )
         | RunnablePassthrough.assign(
@@ -69,5 +66,22 @@ def create_rag_chain(
         )
     )
 
-
     return rag_chain
+
+def get_question_text(data):
+    question = data.get("question")
+
+    # Normal case: question is already a string.
+    if isinstance(question, str):
+        return question
+
+    # Handle an accidentally nested question dictionary.
+    if isinstance(question, dict):
+        nested_question = question.get("question")
+        if isinstance(nested_question, str):
+            return nested_question
+
+    raise TypeError(
+        f"Expected question to be a string, "
+        f"but received {type(question).__name__}: {question!r}"
+    )
