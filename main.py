@@ -8,7 +8,7 @@ from app.vectorstore.store import create_vector_store
 from app.retrieval.retriever import create_retriever
 
 from app.generation.llm import create_llm
-from app.generation.prompt import create_rag_prompt
+from app.generation.prompt import create_rag_prompt , create_history_aware_prompt 
 
 from app.rag.chain import create_rag_chain
 
@@ -66,11 +66,14 @@ def main():
     # 7. Create prompt
     prompt = create_rag_prompt()
 
+    history_aware_prompt = create_history_aware_prompt()
+
     # 8. Create RAG chain
     rag_chain = create_rag_chain(
         retriever,
         prompt,
         llm,
+        history_aware_prompt = history_aware_prompt(),
     )
 
     
