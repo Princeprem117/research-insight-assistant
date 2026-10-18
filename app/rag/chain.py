@@ -1,6 +1,8 @@
 
 from pathlib import Path
 
+from langchain_classic.chains import create_history_aware_retriever
+
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.retrievers import BaseRetriever
@@ -35,17 +37,25 @@ def format_docs(documents):
 
 
 def create_rag_chain(
-    retriever: BaseRetriever,
-    prompt: ChatPromptTemplate,
-    llm: ChatOpenRouter,
+    retriever,
+    prompt,
+    llm,
+    history_aware_prompt,
 ):
+    history_aware_retriever = create_history_aware_retriever(
+        llm,
+        retriever,
+        history_aware_prompt,
+    )
 
     answer_chain = (
         {
             "context": RunnableLambda(
                 lambda x: format_docs(x["documents"])
             ),
-            "question": RunnableLambda(get_question_text),
+            "question": RunnableLambda(
+                lambda x: get_question_text(x)
+            ),
             "chat_history": RunnableLambda(
                 lambda x: x["chat_history"]
             ),
@@ -58,7 +68,10 @@ def create_rag_chain(
     rag_chain = (
         RunnablePassthrough.assign(
             documents=RunnableLambda(
-                lambda x: retriever.invoke(get_question_text(x))
+                lambda x: history_aware_retriever.invoke({
+                    "input": get_question_text(x),
+                    "chat_history": x["chat_history"],
+                })
             )
         )
         | RunnablePassthrough.assign(
