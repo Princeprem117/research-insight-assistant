@@ -73,7 +73,7 @@ def main():
         retriever,
         prompt,
         llm,
-        history_aware_prompt = history_aware_prompt(),
+        history_aware_prompt = history_aware_prompt,
     )
 
     
