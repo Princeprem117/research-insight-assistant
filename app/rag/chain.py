@@ -36,26 +36,79 @@ def format_docs(documents):
     return "\n\n".join(formatted)
 
 
-def create_rag_chain(
-    retriever,
-    prompt,
-    llm,
-    history_aware_prompt,
-):
-    history_aware_retriever = create_history_aware_retriever(
-        llm,
-        retriever,
-        history_aware_prompt,
+def get_question_text(data):
+    question = data.get("question")
+
+    if isinstance(question, str):
+        return question
+
+    if isinstance(question, dict):
+        nested_question = question.get("question")
+        if isinstance(nested_question, str):
+            return nested_question
+
+    raise TypeError(
+        f"Expected question to be a string, "
+        f"but received {type(question).__name__}: {question!r}"
     )
+
+
+def create_rag_chain(
+    retriever: BaseRetriever,
+    prompt: ChatPromptTemplate,
+    llm: ChatOpenRouter,
+    history_aware_prompt: ChatPromptTemplate,
+):
+    # 1. Build the query-rewriting chain.
+    # We reproduce the standard history-aware behavior so
+    # that the rewritten query can be printed for debugging.
+    rewrite_chain = (
+        history_aware_prompt
+        | llm
+        | StrOutputParser()
+    )
+
+    def retrieve_with_history(data):
+        question = get_question_text(data)
+        chat_history = data.get("chat_history", [])
+
+        print("\n[DEBUG] Original question:", question)
+
+        if chat_history:
+            rewritten_question = rewrite_chain.invoke({
+                "input": question,
+                "chat_history": chat_history,
+            })
+        else:
+            rewritten_question = question
+
+        print("[DEBUG] Search query:", rewritten_question)
+
+        documents = retriever.invoke(rewritten_question)
+
+        print("[DEBUG] Retrieved documents:", len(documents))
+
+        for i, doc in enumerate(documents, start=1):
+            source = Path(
+                doc.metadata.get("source", "Unknown source")
+            ).name
+            page = doc.metadata.get(
+                "page_label",
+                doc.metadata.get("page", "Unknown"),
+            )
+
+            print(
+                f"[DEBUG] Source {i}: {source} | Page: {page}"
+            )
+
+        return documents
 
     answer_chain = (
         {
             "context": RunnableLambda(
                 lambda x: format_docs(x["documents"])
             ),
-            "question": RunnableLambda(
-                lambda x: get_question_text(x)
-            ),
+            "question": RunnableLambda(get_question_text),
             "chat_history": RunnableLambda(
                 lambda x: x["chat_history"]
             ),
@@ -67,12 +120,7 @@ def create_rag_chain(
 
     rag_chain = (
         RunnablePassthrough.assign(
-            documents=RunnableLambda(
-                lambda x: history_aware_retriever.invoke({
-                    "input": get_question_text(x),
-                    "chat_history": x["chat_history"],
-                })
-            )
+            documents=RunnableLambda(retrieve_with_history)
         )
         | RunnablePassthrough.assign(
             answer=answer_chain
@@ -80,21 +128,3 @@ def create_rag_chain(
     )
 
     return rag_chain
-
-def get_question_text(data):
-    question = data.get("question")
-
-    # Normal case: question is already a string.
-    if isinstance(question, str):
-        return question
-
-    # Handle an accidentally nested question dictionary.
-    if isinstance(question, dict):
-        nested_question = question.get("question")
-        if isinstance(nested_question, str):
-            return nested_question
-
-    raise TypeError(
-        f"Expected question to be a string, "
-        f"but received {type(question).__name__}: {question!r}"
-    )
