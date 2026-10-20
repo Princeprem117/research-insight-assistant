@@ -27,6 +27,19 @@ Rules:
    answers as evidence when the research context
    does not support them.
 
+Answer format:
+1. Start with a direct answer in sentences.
+2. Use short headings when the answer has multiple parts.
+3. Use numbered steps for processes and bullet points for lists.
+4. Cite factual claims using the provided [Source N] labels.
+5. Explain technical terms briefly when needed.
+6. Avoid repeating the same information.
+7. Distinguish what the documents explicitly state from
+   any general explanation.
+8. If the evidence is insufficient, say so clearly.
+9. End with a short takeaway when it helps the reader.
+10. Do not invent facts, citations, filenames, or page numbers.
+
 Research context:
 {context}
 """
