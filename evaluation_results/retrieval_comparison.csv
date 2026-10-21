@@ -1,0 +1,1041 @@
+﻿question,search_type,k,rank,chunk_id,source,page,content,relevant
+Where does retrieval take place in a RAG pipeline?,similarity,3,1,efc8ce33876b,langchain-retrieval-augmented-generation-white-paper.pdf,4,"3 
+3. Explanation of RAG Pipeline 
+3.1. RAG Pipeline 
+A typical RAG pipeline consists of several stages and may use more than one deep learning 
+model in the question-answering process. An example full pipeline is shown below.  
+ 
+ 
+Figure 2. The RAG pipeline consists of preparation stages that occur offline (before deployment) and 
+active stages that occur when the user is interacting with the application. 
+ 
+The first four stages occur offline, before the model is deployed: 
+ 
+1. The source documents are loaded using an unstructured loader (which supports .txt, 
+.pdf, .html, etc). 
+2. The documents are split into chunks of text, making them easier to parse. The chunks of 
+text have to be short enough to fit in the LLM’s context window and must be small 
+enough to be accurately representable by a single embedding. 
+3. These text chunks are converted to vectors that numerically represent the information in 
+the text using an embedding model.",
+Where does retrieval take place in a RAG pipeline?,similarity,3,2,05ac5bad4931,langchain-retrieval-augmented-generation-white-paper.pdf,19,"18 
+Retrieve and Rerank Relevant Document Chunks 
+When a new query is input to the RAG pipeline, the retriever compares it against the chunks of 
+documentation to determine which chunks contain information similar to the query. The retriever 
+returns the “top k” chunks that are most similar (e.g., the top 10 chunks). The rerank model then 
+processes the top k chunks using a deep learning algorithm to perform an even better sort of 
+relevance. It returns the “top n” chunks which are most relevant to the query. The number of 
+“top k” and “top n” chunks returned are configurable as parameters for the retriever and 
+reranker. 
+ 
+In some cases, the rerank model winds up being redundant. It doesn’t change the order of 
+chunks returned by the retriever because the retriever already did a good enough job sorting 
+them. The reranker step can be skipped in these cases. 
+ 
+Rerank models that have been converted to OpenVINO™ IR format can be loaded using the",
+Where does retrieval take place in a RAG pipeline?,similarity,3,3,187d3d065aca,langchain-retrieval-augmented-generation-white-paper.pdf,15,"RAG pipeline can be built around them. Most of the tasks involved with loading documents, 
+vectorizing inputs, etc., are handled by LangChain. OpenVINO™ provides the execution 
+backend for the deep learning models. This section provides code snippets showing how to set 
+up various parts of the pipeline. 
+ 
+The RAG pipeline can be broken into two stages: the indexing stage and the retrieval and 
+generation stage.",
+Where does retrieval take place in a RAG pipeline?,similarity,5,1,efc8ce33876b,langchain-retrieval-augmented-generation-white-paper.pdf,4,"3 
+3. Explanation of RAG Pipeline 
+3.1. RAG Pipeline 
+A typical RAG pipeline consists of several stages and may use more than one deep learning 
+model in the question-answering process. An example full pipeline is shown below.  
+ 
+ 
+Figure 2. The RAG pipeline consists of preparation stages that occur offline (before deployment) and 
+active stages that occur when the user is interacting with the application. 
+ 
+The first four stages occur offline, before the model is deployed: 
+ 
+1. The source documents are loaded using an unstructured loader (which supports .txt, 
+.pdf, .html, etc). 
+2. The documents are split into chunks of text, making them easier to parse. The chunks of 
+text have to be short enough to fit in the LLM’s context window and must be small 
+enough to be accurately representable by a single embedding. 
+3. These text chunks are converted to vectors that numerically represent the information in 
+the text using an embedding model.",
+Where does retrieval take place in a RAG pipeline?,similarity,5,2,05ac5bad4931,langchain-retrieval-augmented-generation-white-paper.pdf,19,"18 
+Retrieve and Rerank Relevant Document Chunks 
+When a new query is input to the RAG pipeline, the retriever compares it against the chunks of 
+documentation to determine which chunks contain information similar to the query. The retriever 
+returns the “top k” chunks that are most similar (e.g., the top 10 chunks). The rerank model then 
+processes the top k chunks using a deep learning algorithm to perform an even better sort of 
+relevance. It returns the “top n” chunks which are most relevant to the query. The number of 
+“top k” and “top n” chunks returned are configurable as parameters for the retriever and 
+reranker. 
+ 
+In some cases, the rerank model winds up being redundant. It doesn’t change the order of 
+chunks returned by the retriever because the retriever already did a good enough job sorting 
+them. The reranker step can be skipped in these cases. 
+ 
+Rerank models that have been converted to OpenVINO™ IR format can be loaded using the",
+Where does retrieval take place in a RAG pipeline?,similarity,5,3,187d3d065aca,langchain-retrieval-augmented-generation-white-paper.pdf,15,"RAG pipeline can be built around them. Most of the tasks involved with loading documents, 
+vectorizing inputs, etc., are handled by LangChain. OpenVINO™ provides the execution 
+backend for the deep learning models. This section provides code snippets showing how to set 
+up various parts of the pipeline. 
+ 
+The RAG pipeline can be broken into two stages: the indexing stage and the retrieval and 
+generation stage.",
+Where does retrieval take place in a RAG pipeline?,similarity,5,4,73e6280f3725,langchain-retrieval-augmented-generation-white-paper.pdf,7,"6 
+In the second stage, a rerank model, which is more accurate than the mathematical 
+comparison, is used to rank the top_k documents in order of relevance to the query and return 
+the “top_n” best documents (e.g. top_n = 5). Rerankers benefit from having the context of the 
+user query to better locate relevant information. They also require more processing than the 
+mathematical comparison used in the first stage. 
+ 
+ 
+Figure 4. In two-stage retrieval, rerank models take the top results identified by vector similarity and re -
+sort them in order of relevance to the input query 
+ 
+Here’s how two-stage retrieval works in the RAG pipeline: 
+● Chunks of a database of text is converted to vectors using a text embedding model 
+● A user query is converted to a vector 
+● The query vector is compared to the database vectors to identify the top_k most relevant 
+chunks of text in the database 
+● A reranker model sorts those top_k chunks in better order of relevance to the user query",
+Where does retrieval take place in a RAG pipeline?,similarity,5,5,4c687821fe0a,langchain-retrieval-augmented-generation-white-paper.pdf,21,"20 
+ 
+When the code runs, it will display the prompt provided to the LLM (which includes the user 
+query and the retrieved context) and the answer generated by the LLM. 
+ 
+The code snippets in this section are intended to provide a basic example showing how each 
+stage of the RAG pipeline works. In practice, there are many factors to consider when creating a 
+RAG application: which Document Loaders to use, the retriever search method, how many text 
+chunks to extract, and much more. To see a professional end-to-end example that puts the full 
+process together, visit the OpenVINO™ Notebooks RAG example, which is described in the 
+next section. 
+5. OpenVINO™ RAG Examples 
+OpenVINO™ provides two exhaustive examples showing how to set up an RAG pipeline and 
+chatbot interface, either locally or on a remote server. 
+5.1. OpenVINO™ Notebooks End-to-End RAG Pipeline 
+The llm-rag-langchain OpenVINO™ Notebook provides an end-to-end example of how to set up",
+Where does retrieval take place in a RAG pipeline?,mmr,3,1,efc8ce33876b,langchain-retrieval-augmented-generation-white-paper.pdf,4,"3 
+3. Explanation of RAG Pipeline 
+3.1. RAG Pipeline 
+A typical RAG pipeline consists of several stages and may use more than one deep learning 
+model in the question-answering process. An example full pipeline is shown below.  
+ 
+ 
+Figure 2. The RAG pipeline consists of preparation stages that occur offline (before deployment) and 
+active stages that occur when the user is interacting with the application. 
+ 
+The first four stages occur offline, before the model is deployed: 
+ 
+1. The source documents are loaded using an unstructured loader (which supports .txt, 
+.pdf, .html, etc). 
+2. The documents are split into chunks of text, making them easier to parse. The chunks of 
+text have to be short enough to fit in the LLM’s context window and must be small 
+enough to be accurately representable by a single embedding. 
+3. These text chunks are converted to vectors that numerically represent the information in 
+the text using an embedding model.",
+Where does retrieval take place in a RAG pipeline?,mmr,3,2,05ac5bad4931,langchain-retrieval-augmented-generation-white-paper.pdf,19,"18 
+Retrieve and Rerank Relevant Document Chunks 
+When a new query is input to the RAG pipeline, the retriever compares it against the chunks of 
+documentation to determine which chunks contain information similar to the query. The retriever 
+returns the “top k” chunks that are most similar (e.g., the top 10 chunks). The rerank model then 
+processes the top k chunks using a deep learning algorithm to perform an even better sort of 
+relevance. It returns the “top n” chunks which are most relevant to the query. The number of 
+“top k” and “top n” chunks returned are configurable as parameters for the retriever and 
+reranker. 
+ 
+In some cases, the rerank model winds up being redundant. It doesn’t change the order of 
+chunks returned by the retriever because the retriever already did a good enough job sorting 
+them. The reranker step can be skipped in these cases. 
+ 
+Rerank models that have been converted to OpenVINO™ IR format can be loaded using the",
+Where does retrieval take place in a RAG pipeline?,mmr,3,3,3d8fb39cd0e0,A Survey on AGENTIC RAG.pdf,7,"into generated responses. The static nature of retrieval pipelines and limited contextual awareness lead to fragmented,
+inconsistent, or overly generic outputs.
+Example:A query such as,""What are the latest advancements in Alzheimer’s research and their implications for
+early-stage treatment?""might yield relevant research papers and medical guidelines. However, traditional RAG
+systems often fail to synthesize these findings into a coherent explanation that connects the new treatments to specific
+patient scenarios. Similarly, for a query like,""What are the best sustainable practices for small-scale agriculture in
+arid regions?"", traditional systems might retrieve documents on general agricultural methods but overlook critical
+sustainability practices tailored to arid environments.
+7",
+Where does retrieval take place in a RAG pipeline?,mmr,5,1,efc8ce33876b,langchain-retrieval-augmented-generation-white-paper.pdf,4,"3 
+3. Explanation of RAG Pipeline 
+3.1. RAG Pipeline 
+A typical RAG pipeline consists of several stages and may use more than one deep learning 
+model in the question-answering process. An example full pipeline is shown below.  
+ 
+ 
+Figure 2. The RAG pipeline consists of preparation stages that occur offline (before deployment) and 
+active stages that occur when the user is interacting with the application. 
+ 
+The first four stages occur offline, before the model is deployed: 
+ 
+1. The source documents are loaded using an unstructured loader (which supports .txt, 
+.pdf, .html, etc). 
+2. The documents are split into chunks of text, making them easier to parse. The chunks of 
+text have to be short enough to fit in the LLM’s context window and must be small 
+enough to be accurately representable by a single embedding. 
+3. These text chunks are converted to vectors that numerically represent the information in 
+the text using an embedding model.",
+Where does retrieval take place in a RAG pipeline?,mmr,5,2,05ac5bad4931,langchain-retrieval-augmented-generation-white-paper.pdf,19,"18 
+Retrieve and Rerank Relevant Document Chunks 
+When a new query is input to the RAG pipeline, the retriever compares it against the chunks of 
+documentation to determine which chunks contain information similar to the query. The retriever 
+returns the “top k” chunks that are most similar (e.g., the top 10 chunks). The rerank model then 
+processes the top k chunks using a deep learning algorithm to perform an even better sort of 
+relevance. It returns the “top n” chunks which are most relevant to the query. The number of 
+“top k” and “top n” chunks returned are configurable as parameters for the retriever and 
+reranker. 
+ 
+In some cases, the rerank model winds up being redundant. It doesn’t change the order of 
+chunks returned by the retriever because the retriever already did a good enough job sorting 
+them. The reranker step can be skipped in these cases. 
+ 
+Rerank models that have been converted to OpenVINO™ IR format can be loaded using the",
+Where does retrieval take place in a RAG pipeline?,mmr,5,3,3d8fb39cd0e0,A Survey on AGENTIC RAG.pdf,7,"into generated responses. The static nature of retrieval pipelines and limited contextual awareness lead to fragmented,
+inconsistent, or overly generic outputs.
+Example:A query such as,""What are the latest advancements in Alzheimer’s research and their implications for
+early-stage treatment?""might yield relevant research papers and medical guidelines. However, traditional RAG
+systems often fail to synthesize these findings into a coherent explanation that connects the new treatments to specific
+patient scenarios. Similarly, for a query like,""What are the best sustainable practices for small-scale agriculture in
+arid regions?"", traditional systems might retrieve documents on general agricultural methods but overlook critical
+sustainability practices tailored to arid environments.
+7",
+Where does retrieval take place in a RAG pipeline?,mmr,5,4,3ab89b8913f6,A Survey on AGENTIC RAG.pdf,5,"such as research synthesis and personalized recommendations. However, challenges such as computational overhead
+and limited scalability persist, particularly when dealing with large datasets or multi-step queries.
+2.3.3 Modular RAG
+Modular RAG [ 21] represents the latest evolution in RAG paradigms, emphasizing flexibility and customization.
+These systems decompose the retrieval and generation pipeline into independent, reusable components, enabling
+domain-specific optimization and task adaptability. Figure 5 demonstrates the modular architecture, showcasing hybrid
+retrieval strategies, composable pipelines, and external tool integration.
+Key innovations in Modular RAG include:
+• Hybrid Retrieval Strategies: Combining sparse retrieval methods (e.g., a sparse encoder-BM25) with dense
+retrieval techniques [22] (e.g., DPR - Dense Passage Retrieval ) to maximize accuracy across diverse query
+types.",
+Where does retrieval take place in a RAG pipeline?,mmr,5,5,a00845d4ac77,A Survey on AGENTIC RAG.pdf,2,"collaboration—to dynamically decompose tasks and adapt strategies. Such capabilities are directly relevant to RAG,
+as retrieval and reasoning decisions can themselves be treated as agentic tasks. These patterns are further structured
+through workflow patterns [13, 14], including prompt chaining, routing, parallelization, orchestrator–worker models,
+and evaluator–optimizer loops, governing how multiple prompts, models, or agents are coordinated at the system level.
+The convergence of RAG and agentic intelligence has given rise toAgentic Retrieval-Augmented Generation (Agentic
+RAG)[ 15], which integrates autonomous agents directly into the RAG pipeline to enable dynamic retrieval, iterative
+context refinement, and adaptive workflow orchestration [16]. This introduces an explicit control layer that guides how
+the system reasons over external evidence—coordinating retrieval, validating information, invoking tools, and refining",
+What is agentic RAG?,similarity,3,1,d3541e38b846,A Survey on AGENTIC RAG.pdf,2,"the system reasons over external evidence—coordinating retrieval, validating information, invoking tools, and refining
+responses—making Agentic RAG effective for complex, multi-domain tasks requiring precision and adaptability, as
+illustrated in Fig. 1.
+Despite rapidly growing interest, the Agentic RAG field remains fragmented, with diverse architectures, inconsistent
+terminology, and limited comparative understanding. Existing work focuses on individual frameworks or application-
+specific implementations, and no unified taxonomy currently organizes Agentic RAG systems along principled design
+dimensions.
+This paper presents an analytical survey aimed at structuring this emerging field. It reviews the evolution of RAG
+paradigms, including naïve, modular, and graph-based RAG [17], and their transition toward agentic systems. A princi-
+pled taxonomy of Agentic RAG architectures is introduced based on agent cardinality, control structure, autonomy, and",
+What is agentic RAG?,similarity,3,2,e8dc4dcc56c7,A Survey on AGENTIC RAG.pdf,38,"[31] LangChain. Langgraph workflows tutorial, 2025. https://langchain-ai.github.io/langgraph/
+tutorials/workflows/. Accessed: January 18, 2026.
+[32] Weaviate Blog. What is agentic rag? https://weaviate.io/blog/what-is-agentic-rag#:~:text=is%
+20Agentic%20RAG%3F-,%E2%80%8B,of%20the%20non%2Dagentic%20pipeline.Accessed: 2026-01-14.
+[33] Shi-Qi Yan, Jia-Chen Gu, Yun Zhu, and Zhen-Hua Ling. Corrective retrieval augmented generation, 2024.
+[34] LangGraph CRAG Tutorial. Langgraph crag: Contextualized retrieval-augmented generation tutorial. https:
+//langchain-ai.github.io/langgraph/tutorials/rag/langgraph_crag/. Accessed: 2026-01-14.
+[35] Soyeong Jeong, Jinheon Baek, Sukmin Cho, Sung Ju Hwang, and Jong C. Park. Adaptive-rag: Learning to adapt
+retrieval-augmented large language models through question complexity, 2024.
+[36] LangGraph Adaptive RAG Tutorial. Langgraph adaptive rag: Adaptive retrieval-augmented generation tu-",
+What is agentic RAG?,similarity,3,3,cccbfff30a06,A Survey on AGENTIC RAG.pdf,2,"pled taxonomy of Agentic RAG architectures is introduced based on agent cardinality, control structure, autonomy, and
+knowledge representation, followed by a comparative analysis of design trade-offs. The survey examines applications
+across healthcare [18, 19], finance, and education [20], distills practical lessons for system designers, and identifies
+open research challenges to guide future work.
+The structure of this paper is as follows: Section 2 introduces RAG and its evolution, highlighting the limitations of
+traditional approaches. Section 3 elaborates on the principles of agentic intelligence and agentic patterns. Section
+4 elaborates on agentic workflow patterns. Section 5 provides a taxonomy of Agentic RAG systems, including
+single-agent, multi-agent, and graph-based frameworks. Section 6 provides a comparative analysis of Agentic RAG
+frameworks. Section 7 examines applications of Agentic RAG, while Section 8 discusses implementation tools and",
+What is agentic RAG?,similarity,5,1,d3541e38b846,A Survey on AGENTIC RAG.pdf,2,"the system reasons over external evidence—coordinating retrieval, validating information, invoking tools, and refining
+responses—making Agentic RAG effective for complex, multi-domain tasks requiring precision and adaptability, as
+illustrated in Fig. 1.
+Despite rapidly growing interest, the Agentic RAG field remains fragmented, with diverse architectures, inconsistent
+terminology, and limited comparative understanding. Existing work focuses on individual frameworks or application-
+specific implementations, and no unified taxonomy currently organizes Agentic RAG systems along principled design
+dimensions.
+This paper presents an analytical survey aimed at structuring this emerging field. It reviews the evolution of RAG
+paradigms, including naïve, modular, and graph-based RAG [17], and their transition toward agentic systems. A princi-
+pled taxonomy of Agentic RAG architectures is introduced based on agent cardinality, control structure, autonomy, and",
+What is agentic RAG?,similarity,5,2,e8dc4dcc56c7,A Survey on AGENTIC RAG.pdf,38,"[31] LangChain. Langgraph workflows tutorial, 2025. https://langchain-ai.github.io/langgraph/
+tutorials/workflows/. Accessed: January 18, 2026.
+[32] Weaviate Blog. What is agentic rag? https://weaviate.io/blog/what-is-agentic-rag#:~:text=is%
+20Agentic%20RAG%3F-,%E2%80%8B,of%20the%20non%2Dagentic%20pipeline.Accessed: 2026-01-14.
+[33] Shi-Qi Yan, Jia-Chen Gu, Yun Zhu, and Zhen-Hua Ling. Corrective retrieval augmented generation, 2024.
+[34] LangGraph CRAG Tutorial. Langgraph crag: Contextualized retrieval-augmented generation tutorial. https:
+//langchain-ai.github.io/langgraph/tutorials/rag/langgraph_crag/. Accessed: 2026-01-14.
+[35] Soyeong Jeong, Jinheon Baek, Sukmin Cho, Sung Ju Hwang, and Jong C. Park. Adaptive-rag: Learning to adapt
+retrieval-augmented large language models through question complexity, 2024.
+[36] LangGraph Adaptive RAG Tutorial. Langgraph adaptive rag: Adaptive retrieval-augmented generation tu-",
+What is agentic RAG?,similarity,5,3,cccbfff30a06,A Survey on AGENTIC RAG.pdf,2,"pled taxonomy of Agentic RAG architectures is introduced based on agent cardinality, control structure, autonomy, and
+knowledge representation, followed by a comparative analysis of design trade-offs. The survey examines applications
+across healthcare [18, 19], finance, and education [20], distills practical lessons for system designers, and identifies
+open research challenges to guide future work.
+The structure of this paper is as follows: Section 2 introduces RAG and its evolution, highlighting the limitations of
+traditional approaches. Section 3 elaborates on the principles of agentic intelligence and agentic patterns. Section
+4 elaborates on agentic workflow patterns. Section 5 provides a taxonomy of Agentic RAG systems, including
+single-agent, multi-agent, and graph-based frameworks. Section 6 provides a comparative analysis of Agentic RAG
+frameworks. Section 7 examines applications of Agentic RAG, while Section 8 discusses implementation tools and",
+What is agentic RAG?,similarity,5,4,725accb71d18,A Survey on AGENTIC RAG.pdf,9,"particular, Agentic RAG systems reduce latency through optimized workflows and refine outputs iteratively, tackling
+the very challenges that have historically hindered traditional RAG’s scalability and effectiveness.
+3 Core Principles and Background of Agentic Intelligence
+Agentic Intelligence forms the foundation of Agentic Retrieval-Augmented Generation (RAG) systems, enabling them
+to transcend the static and reactive nature of traditional RAG. By integrating autonomous agents capable of dynamic
+decision-making, iterative reasoning, and collaborative workflows, Agentic RAG systems exhibit enhanced adaptability
+and precision. This section explores the core principles underpinning agentic intelligence.
+Components of an AI Agent.In essence, an AI agent comprises (Figure. 7):
+•LLM (with defined Role and Task):Serves as the agent’s primary reasoning engine and dialogue interface.
+It interprets user queries, generates responses, and maintains coherence.",
+What is agentic RAG?,similarity,5,5,5660e0ecdf17,A Survey on AGENTIC RAG.pdf,16,"response.
+4.Output Generation:
+• The system generates an actionable and concise response, providing live tracking updates and
+potential alternatives.
+Response:
+Integrated Response:“Your package is currently in transit and expected to arrive tomorrow evening. The live
+tracking from UPS indicates it is at the regional distribution center.”
+5.2 Multi-Agent Agentic RAG Systems:
+Multi-Agent RAG[ 32] represents a modular and scalable evolution of single-agent architectures, designed to handle
+complex workflows and diverse query types by leveraging multiple specialized agents (as shown in Figure 17). Instead
+of relying on a single agent to manage all tasks—reasoning, retrieval, and response generation—this system distributes
+responsibilities across multiple agents, each optimized for a specific role or data source.
+Workflow
+1. Query Submission: The process begins with a user query, which is received by acoordinator agentor master",
+What is agentic RAG?,mmr,3,1,d3541e38b846,A Survey on AGENTIC RAG.pdf,2,"the system reasons over external evidence—coordinating retrieval, validating information, invoking tools, and refining
+responses—making Agentic RAG effective for complex, multi-domain tasks requiring precision and adaptability, as
+illustrated in Fig. 1.
+Despite rapidly growing interest, the Agentic RAG field remains fragmented, with diverse architectures, inconsistent
+terminology, and limited comparative understanding. Existing work focuses on individual frameworks or application-
+specific implementations, and no unified taxonomy currently organizes Agentic RAG systems along principled design
+dimensions.
+This paper presents an analytical survey aimed at structuring this emerging field. It reviews the evolution of RAG
+paradigms, including naïve, modular, and graph-based RAG [17], and their transition toward agentic systems. A princi-
+pled taxonomy of Agentic RAG architectures is introduced based on agent cardinality, control structure, autonomy, and",
+What is agentic RAG?,mmr,3,2,0ef91959b785,A Survey on AGENTIC RAG.pdf,30,"Use Case: Patient Case Summary[40]
+Agentic RAG systems have been applied in generating patient case summaries. For example, by integrating electronic
+health records (EHR) and up-to-date medical literature, the system generates comprehensive summaries for clinicians
+to make faster and more informed decisions.
+Key Benefits:
+•Personalized Care: Tailors recommendations to individual patient needs.
+• Time Efficiency: Streamlines the retrieval of relevant research, saving valuable time for healthcare providers.
+•Accuracy: Ensures recommendations are based on the latest evidence and patient-specific parameters.
+7.3 Legal and Contract Analysis
+Agentic RAG systems are redefining how legal workflows are conducted, offering tools for rapid document analysis and
+decision-making.
+Use Case: Contract Review[41]
+A legal agentic RAG system can analyze contracts, extract critical clauses, and identify potential risks. By combining",
+What is agentic RAG?,mmr,3,3,16f2b4307912,langchain-retrieval-augmented-generation-white-paper.pdf,3,"2 
+There are several benefits to using RAG: 
+ 
+1. RAG increases the accuracy of LLM responses, because the LLM can directly reference 
+the set of information provided rather than relying on its general knowledge. 
+2. It significantly reduces the likelihood of hallucination and incorrect responses. If the 
+provided documentation does not have the information the user is looking for, the LLM 
+can simply say it doesn’t know the answer to the user’s query. 
+3. The LLM’s knowledge source can be updated in real time so it can stay current with 
+changes in information. 
+4. RAG responses are more transparent because they can include references to the 
+source of the information. 
+ 
+RAG allows companies to develop AI-enabled chatbots with specific knowledge of their product 
+or service without needing to go through the costly and time-consuming process of fine tuning. 
+For example, a health insurance company can provide an LLM with information about its health",
+What is agentic RAG?,mmr,5,1,d3541e38b846,A Survey on AGENTIC RAG.pdf,2,"the system reasons over external evidence—coordinating retrieval, validating information, invoking tools, and refining
+responses—making Agentic RAG effective for complex, multi-domain tasks requiring precision and adaptability, as
+illustrated in Fig. 1.
+Despite rapidly growing interest, the Agentic RAG field remains fragmented, with diverse architectures, inconsistent
+terminology, and limited comparative understanding. Existing work focuses on individual frameworks or application-
+specific implementations, and no unified taxonomy currently organizes Agentic RAG systems along principled design
+dimensions.
+This paper presents an analytical survey aimed at structuring this emerging field. It reviews the evolution of RAG
+paradigms, including naïve, modular, and graph-based RAG [17], and their transition toward agentic systems. A princi-
+pled taxonomy of Agentic RAG architectures is introduced based on agent cardinality, control structure, autonomy, and",
+What is agentic RAG?,mmr,5,2,e8dc4dcc56c7,A Survey on AGENTIC RAG.pdf,38,"[31] LangChain. Langgraph workflows tutorial, 2025. https://langchain-ai.github.io/langgraph/
+tutorials/workflows/. Accessed: January 18, 2026.
+[32] Weaviate Blog. What is agentic rag? https://weaviate.io/blog/what-is-agentic-rag#:~:text=is%
+20Agentic%20RAG%3F-,%E2%80%8B,of%20the%20non%2Dagentic%20pipeline.Accessed: 2026-01-14.
+[33] Shi-Qi Yan, Jia-Chen Gu, Yun Zhu, and Zhen-Hua Ling. Corrective retrieval augmented generation, 2024.
+[34] LangGraph CRAG Tutorial. Langgraph crag: Contextualized retrieval-augmented generation tutorial. https:
+//langchain-ai.github.io/langgraph/tutorials/rag/langgraph_crag/. Accessed: 2026-01-14.
+[35] Soyeong Jeong, Jinheon Baek, Sukmin Cho, Sung Ju Hwang, and Jong C. Park. Adaptive-rag: Learning to adapt
+retrieval-augmented large language models through question complexity, 2024.
+[36] LangGraph Adaptive RAG Tutorial. Langgraph adaptive rag: Adaptive retrieval-augmented generation tu-",
+What is agentic RAG?,mmr,5,3,5660e0ecdf17,A Survey on AGENTIC RAG.pdf,16,"response.
+4.Output Generation:
+• The system generates an actionable and concise response, providing live tracking updates and
+potential alternatives.
+Response:
+Integrated Response:“Your package is currently in transit and expected to arrive tomorrow evening. The live
+tracking from UPS indicates it is at the regional distribution center.”
+5.2 Multi-Agent Agentic RAG Systems:
+Multi-Agent RAG[ 32] represents a modular and scalable evolution of single-agent architectures, designed to handle
+complex workflows and diverse query types by leveraging multiple specialized agents (as shown in Figure 17). Instead
+of relying on a single agent to manage all tasks—reasoning, retrieval, and response generation—this system distributes
+responsibilities across multiple agents, each optimized for a specific role or data source.
+Workflow
+1. Query Submission: The process begins with a user query, which is received by acoordinator agentor master",
+What is agentic RAG?,mmr,5,4,0ef91959b785,A Survey on AGENTIC RAG.pdf,30,"Use Case: Patient Case Summary[40]
+Agentic RAG systems have been applied in generating patient case summaries. For example, by integrating electronic
+health records (EHR) and up-to-date medical literature, the system generates comprehensive summaries for clinicians
+to make faster and more informed decisions.
+Key Benefits:
+•Personalized Care: Tailors recommendations to individual patient needs.
+• Time Efficiency: Streamlines the retrieval of relevant research, saving valuable time for healthcare providers.
+•Accuracy: Ensures recommendations are based on the latest evidence and patient-specific parameters.
+7.3 Legal and Contract Analysis
+Agentic RAG systems are redefining how legal workflows are conducted, offering tools for rapid document analysis and
+decision-making.
+Use Case: Contract Review[41]
+A legal agentic RAG system can analyze contracts, extract critical clauses, and identify potential risks. By combining",
+What is agentic RAG?,mmr,5,5,16f2b4307912,langchain-retrieval-augmented-generation-white-paper.pdf,3,"2 
+There are several benefits to using RAG: 
+ 
+1. RAG increases the accuracy of LLM responses, because the LLM can directly reference 
+the set of information provided rather than relying on its general knowledge. 
+2. It significantly reduces the likelihood of hallucination and incorrect responses. If the 
+provided documentation does not have the information the user is looking for, the LLM 
+can simply say it doesn’t know the answer to the user’s query. 
+3. The LLM’s knowledge source can be updated in real time so it can stay current with 
+changes in information. 
+4. RAG responses are more transparent because they can include references to the 
+source of the information. 
+ 
+RAG allows companies to develop AI-enabled chatbots with specific knowledge of their product 
+or service without needing to go through the costly and time-consuming process of fine tuning. 
+For example, a health insurance company can provide an LLM with information about its health",
+How does the Deep Agents implementation perform vector similarity search?,similarity,3,1,e394c72fd81a,A Survey on AGENTIC RAG.pdf,24,"Key Idea of Agent-GThe core principle of Agent-G lies in its ability to dynamically assign retrieval tasks to
+specialized agents, leveraging both graph knowledge bases and textual documents. Agent-G adjusts its retrieval strategy
+as follows:
+• Graph Knowledge Bases:Structured data is used to extract relationships, hierarchies, and connections (e.g.,
+disease-to-symptom mappings in healthcare).
+• Unstructured Documents:Traditional text retrieval systems provide contextual information to complement
+graph data.
+• Critic Module:Evaluates the relevance and quality of retrieved information, ensuring alignment with the
+query.
+•Feedback Loops:Refines retrieval and synthesis through iterative validation and re-querying.
+Workflow:The Agent-G system is built on four primary components:
+1.Retriever Bank:
+• A modular set of agents specializes in retrieving graph-based or unstructured data.
+• Agents dynamically select relevant sources based on the query’s requirements.
+2.Critic Module:",
+How does the Deep Agents implementation perform vector similarity search?,similarity,3,2,74fed3d4bdd9,RAG_with_Deep_Agents_Corrected.pdf,2,"query time, offloads them to the filesystem, and delegates analysis to subagents so the orchestrator context stays 
+clean. 
+RAG patterns 
+Deep Agents allows you to orchestrate retrieval, analysis, and synthesis in several ways:  
+• Skills-guided retrieval: The user asks a question. The agent loads a relevant skill that describes how to search 
+your corpus (which index to use, query formulation, citation format). The agent calls your retrieval tool following 
+that guidance, then synthesizes an answer. 
+• Rubric-checked grounding: The user asks a question. The agent retrieves evidence and drafts an answer. A 
+grader sub-agent, configured with RubricMiddleware, evaluates whether the response is grounded in the 
+retrieved source material. The agent revises until the rubric passes or an iteration cap is reached.  
+• Todo-driven investigation: The user asks a question. If you opt into task planning",
+How does the Deep Agents implementation perform vector similarity search?,similarity,3,3,b032733a3430,A Survey on AGENTIC RAG.pdf,9,"•LLM (with defined Role and Task):Serves as the agent’s primary reasoning engine and dialogue interface.
+It interprets user queries, generates responses, and maintains coherence.
+• Memory (Short-Term and Long-Term):Captures context and relevant data across interactions. Short-term
+memory [23] tracks immediate conversation state, while long-term memory [23]stores accumulated knowledge
+and agent experiences.
+• Planning (Reflection & Self-Critique):Guides the agent’s iterative reasoning process through reflection,
+query routing, or self-critique[24], ensuring that complex tasks are broken down effectively [25].
+• Tools Vector Search, Web Search, APIs, etc.):Expands the agent’s capabilities beyond text generation,
+enabling access to external resources, real-time data, or specialized computations.
+Figure 7: An Overview of AI Agents
+Agentic Patterns [26, 27] provide structured methodologies that guide the behavior of agents in Agentic Retrieval-",
+How does the Deep Agents implementation perform vector similarity search?,similarity,5,1,e394c72fd81a,A Survey on AGENTIC RAG.pdf,24,"Key Idea of Agent-GThe core principle of Agent-G lies in its ability to dynamically assign retrieval tasks to
+specialized agents, leveraging both graph knowledge bases and textual documents. Agent-G adjusts its retrieval strategy
+as follows:
+• Graph Knowledge Bases:Structured data is used to extract relationships, hierarchies, and connections (e.g.,
+disease-to-symptom mappings in healthcare).
+• Unstructured Documents:Traditional text retrieval systems provide contextual information to complement
+graph data.
+• Critic Module:Evaluates the relevance and quality of retrieved information, ensuring alignment with the
+query.
+•Feedback Loops:Refines retrieval and synthesis through iterative validation and re-querying.
+Workflow:The Agent-G system is built on four primary components:
+1.Retriever Bank:
+• A modular set of agents specializes in retrieving graph-based or unstructured data.
+• Agents dynamically select relevant sources based on the query’s requirements.
+2.Critic Module:",
+How does the Deep Agents implementation perform vector similarity search?,similarity,5,2,74fed3d4bdd9,RAG_with_Deep_Agents_Corrected.pdf,2,"query time, offloads them to the filesystem, and delegates analysis to subagents so the orchestrator context stays 
+clean. 
+RAG patterns 
+Deep Agents allows you to orchestrate retrieval, analysis, and synthesis in several ways:  
+• Skills-guided retrieval: The user asks a question. The agent loads a relevant skill that describes how to search 
+your corpus (which index to use, query formulation, citation format). The agent calls your retrieval tool following 
+that guidance, then synthesizes an answer. 
+• Rubric-checked grounding: The user asks a question. The agent retrieves evidence and drafts an answer. A 
+grader sub-agent, configured with RubricMiddleware, evaluates whether the response is grounded in the 
+retrieved source material. The agent revises until the rubric passes or an iteration cap is reached.  
+• Todo-driven investigation: The user asks a question. If you opt into task planning",
+How does the Deep Agents implementation perform vector similarity search?,similarity,5,3,b032733a3430,A Survey on AGENTIC RAG.pdf,9,"•LLM (with defined Role and Task):Serves as the agent’s primary reasoning engine and dialogue interface.
+It interprets user queries, generates responses, and maintains coherence.
+• Memory (Short-Term and Long-Term):Captures context and relevant data across interactions. Short-term
+memory [23] tracks immediate conversation state, while long-term memory [23]stores accumulated knowledge
+and agent experiences.
+• Planning (Reflection & Self-Critique):Guides the agent’s iterative reasoning process through reflection,
+query routing, or self-critique[24], ensuring that complex tasks are broken down effectively [25].
+• Tools Vector Search, Web Search, APIs, etc.):Expands the agent’s capabilities beyond text generation,
+enabling access to external resources, real-time data, or specialized computations.
+Figure 7: An Overview of AI Agents
+Agentic Patterns [26, 27] provide structured methodologies that guide the behavior of agents in Agentic Retrieval-",
+How does the Deep Agents implementation perform vector similarity search?,similarity,5,4,1108b0ea6eb9,langchain-retrieval-augmented-generation-white-paper.pdf,6,"two-stage retrieval system. Before deployment, a full dataset of documents is encoded into 
+vectors using a text embedding model. 
+ 
+In the first stage, the query is converted to a vector, and then mathematically compared to the 
+document vectors (using ""cosine similarity"" or a similar metric) to determine which document 
+chunks have data relevant to the query. The first stage will return the ""top_k"" documents (e.g. 
+top_k = 25).",
+How does the Deep Agents implementation perform vector similarity search?,similarity,5,5,f065085d633c,RAG_with_Deep_Agents_Corrected.pdf,13,"to the agent filesystem under /retrieved/{batch_id}/. It returns file paths so the orchestrator can delegate 
+analysis without loading full chunk text into its context.  
+The tool writes retrieved chunks to the agent backend with backend.upload_files(). Pass the same backend 
+instance to create_deep_agent so built-in filesystem tools such as read_file and grep can read the saved paths. 
+    from langchain_core.utils.uuid import uuid7 
+    from deepagents.backends import StateBackend 
+    from langchain.tools import tool 
+    backend = StateBackend() 
+    @tool(parse_docstring=True) 
+    def search_documentation(query: str) -> str: 
+        """"""Search LangChain documentation and save matching chunks to the agent filesystem. 
+        Args: 
+            query: Natural language search query. 
+        Returns: 
+            File paths where retrieved chunks were saved under /retrieved/. 
+        """""" 
+        retrieved_docs = vector_store.similarity_search(query, k=4)",
+How does the Deep Agents implementation perform vector similarity search?,mmr,3,1,e394c72fd81a,A Survey on AGENTIC RAG.pdf,24,"Key Idea of Agent-GThe core principle of Agent-G lies in its ability to dynamically assign retrieval tasks to
+specialized agents, leveraging both graph knowledge bases and textual documents. Agent-G adjusts its retrieval strategy
+as follows:
+• Graph Knowledge Bases:Structured data is used to extract relationships, hierarchies, and connections (e.g.,
+disease-to-symptom mappings in healthcare).
+• Unstructured Documents:Traditional text retrieval systems provide contextual information to complement
+graph data.
+• Critic Module:Evaluates the relevance and quality of retrieved information, ensuring alignment with the
+query.
+•Feedback Loops:Refines retrieval and synthesis through iterative validation and re-querying.
+Workflow:The Agent-G system is built on four primary components:
+1.Retriever Bank:
+• A modular set of agents specializes in retrieving graph-based or unstructured data.
+• Agents dynamically select relevant sources based on the query’s requirements.
+2.Critic Module:",
+How does the Deep Agents implementation perform vector similarity search?,mmr,3,2,f065085d633c,RAG_with_Deep_Agents_Corrected.pdf,13,"to the agent filesystem under /retrieved/{batch_id}/. It returns file paths so the orchestrator can delegate 
+analysis without loading full chunk text into its context.  
+The tool writes retrieved chunks to the agent backend with backend.upload_files(). Pass the same backend 
+instance to create_deep_agent so built-in filesystem tools such as read_file and grep can read the saved paths. 
+    from langchain_core.utils.uuid import uuid7 
+    from deepagents.backends import StateBackend 
+    from langchain.tools import tool 
+    backend = StateBackend() 
+    @tool(parse_docstring=True) 
+    def search_documentation(query: str) -> str: 
+        """"""Search LangChain documentation and save matching chunks to the agent filesystem. 
+        Args: 
+            query: Natural language search query. 
+        Returns: 
+            File paths where retrieved chunks were saved under /retrieved/. 
+        """""" 
+        retrieved_docs = vector_store.similarity_search(query, k=4)",
+How does the Deep Agents implementation perform vector similarity search?,mmr,3,3,73e6280f3725,langchain-retrieval-augmented-generation-white-paper.pdf,7,"6 
+In the second stage, a rerank model, which is more accurate than the mathematical 
+comparison, is used to rank the top_k documents in order of relevance to the query and return 
+the “top_n” best documents (e.g. top_n = 5). Rerankers benefit from having the context of the 
+user query to better locate relevant information. They also require more processing than the 
+mathematical comparison used in the first stage. 
+ 
+ 
+Figure 4. In two-stage retrieval, rerank models take the top results identified by vector similarity and re -
+sort them in order of relevance to the input query 
+ 
+Here’s how two-stage retrieval works in the RAG pipeline: 
+● Chunks of a database of text is converted to vectors using a text embedding model 
+● A user query is converted to a vector 
+● The query vector is compared to the database vectors to identify the top_k most relevant 
+chunks of text in the database 
+● A reranker model sorts those top_k chunks in better order of relevance to the user query",
+How does the Deep Agents implementation perform vector similarity search?,mmr,5,1,e394c72fd81a,A Survey on AGENTIC RAG.pdf,24,"Key Idea of Agent-GThe core principle of Agent-G lies in its ability to dynamically assign retrieval tasks to
+specialized agents, leveraging both graph knowledge bases and textual documents. Agent-G adjusts its retrieval strategy
+as follows:
+• Graph Knowledge Bases:Structured data is used to extract relationships, hierarchies, and connections (e.g.,
+disease-to-symptom mappings in healthcare).
+• Unstructured Documents:Traditional text retrieval systems provide contextual information to complement
+graph data.
+• Critic Module:Evaluates the relevance and quality of retrieved information, ensuring alignment with the
+query.
+•Feedback Loops:Refines retrieval and synthesis through iterative validation and re-querying.
+Workflow:The Agent-G system is built on four primary components:
+1.Retriever Bank:
+• A modular set of agents specializes in retrieving graph-based or unstructured data.
+• Agents dynamically select relevant sources based on the query’s requirements.
+2.Critic Module:",
+How does the Deep Agents implementation perform vector similarity search?,mmr,5,2,74fed3d4bdd9,RAG_with_Deep_Agents_Corrected.pdf,2,"query time, offloads them to the filesystem, and delegates analysis to subagents so the orchestrator context stays 
+clean. 
+RAG patterns 
+Deep Agents allows you to orchestrate retrieval, analysis, and synthesis in several ways:  
+• Skills-guided retrieval: The user asks a question. The agent loads a relevant skill that describes how to search 
+your corpus (which index to use, query formulation, citation format). The agent calls your retrieval tool following 
+that guidance, then synthesizes an answer. 
+• Rubric-checked grounding: The user asks a question. The agent retrieves evidence and drafts an answer. A 
+grader sub-agent, configured with RubricMiddleware, evaluates whether the response is grounded in the 
+retrieved source material. The agent revises until the rubric passes or an iteration cap is reached.  
+• Todo-driven investigation: The user asks a question. If you opt into task planning",
+How does the Deep Agents implementation perform vector similarity search?,mmr,5,3,f065085d633c,RAG_with_Deep_Agents_Corrected.pdf,13,"to the agent filesystem under /retrieved/{batch_id}/. It returns file paths so the orchestrator can delegate 
+analysis without loading full chunk text into its context.  
+The tool writes retrieved chunks to the agent backend with backend.upload_files(). Pass the same backend 
+instance to create_deep_agent so built-in filesystem tools such as read_file and grep can read the saved paths. 
+    from langchain_core.utils.uuid import uuid7 
+    from deepagents.backends import StateBackend 
+    from langchain.tools import tool 
+    backend = StateBackend() 
+    @tool(parse_docstring=True) 
+    def search_documentation(query: str) -> str: 
+        """"""Search LangChain documentation and save matching chunks to the agent filesystem. 
+        Args: 
+            query: Natural language search query. 
+        Returns: 
+            File paths where retrieved chunks were saved under /retrieved/. 
+        """""" 
+        retrieved_docs = vector_store.similarity_search(query, k=4)",
+How does the Deep Agents implementation perform vector similarity search?,mmr,5,4,e54644290c9d,A Survey on AGENTIC RAG.pdf,38,"[23] Zeyu Zhang, Xiaohe Bo, Chen Ma, Rui Li, Xu Chen, Quanyu Dai, Jieming Zhu, Zhenhua Dong, and Ji-Rong
+Wen. A survey on the memory mechanism of large language model based agents, 2024.
+[24] Zhibin Gou, Zhihong Shao, Yeyun Gong, Yelong Shen, Yujiu Yang, Nan Duan, and Weizhu Chen. Critic: Large
+language models can self-correct with tool-interactive critiquing, 2024.
+[25] Xu Huang, Weiwen Liu, Xiaolong Chen, Xingmei Wang, Hao Wang, Defu Lian, Yasheng Wang, Ruiming Tang,
+and Enhong Chen. Understanding the planning of llm agents: A survey, 2024.
+[26] Aditi Singh, Abul Ehtesham, Saket Kumar, and Tala Talaei Khoei. Enhancing ai systems with agentic workflows
+patterns in large language model. InIEEE World AI IoT Congress (AIIoT), pages 527–532, 2024.
+[27] DeepLearning.AI. How agents can improve llm performance. https://www.deeplearning.ai/the-batch/
+how-agents-can-improve-llm-performance/?ref=dl-staging-website.ghost.io , 2024. Ac-
+cessed: 2026-01-13.",
+How does the Deep Agents implementation perform vector similarity search?,mmr,5,5,73e6280f3725,langchain-retrieval-augmented-generation-white-paper.pdf,7,"6 
+In the second stage, a rerank model, which is more accurate than the mathematical 
+comparison, is used to rank the top_k documents in order of relevance to the query and return 
+the “top_n” best documents (e.g. top_n = 5). Rerankers benefit from having the context of the 
+user query to better locate relevant information. They also require more processing than the 
+mathematical comparison used in the first stage. 
+ 
+ 
+Figure 4. In two-stage retrieval, rerank models take the top results identified by vector similarity and re -
+sort them in order of relevance to the input query 
+ 
+Here’s how two-stage retrieval works in the RAG pipeline: 
+● Chunks of a database of text is converted to vectors using a text embedding model 
+● A user query is converted to a vector 
+● The query vector is compared to the database vectors to identify the top_k most relevant 
+chunks of text in the database 
+● A reranker model sorts those top_k chunks in better order of relevance to the user query",
+How do embeddings support retrieval in LangChain?,similarity,3,1,6dabd9ca40ef,langchain-retrieval-augmented-generation-white-paper.pdf,16,"Text splitters break up a document into chunks of text. The size of the chunks can be specified 
+in the LangChain interface. The optimal chunk size is mainly determined by the size of the 
+model's context window. There are many types of text splitters. They differ in what the text splits 
+on (e.g. sentences, paragraphs, certain characters, code blocks). They also differ on how chunk 
+size is measured and how much they allow chunks to overlap. 
+ 
+Embedding Documents 
+The Embeddings module in LangChain provides a standard interface for loading and inference 
+with many different types of text embedding models. The base Embeddings class has methods 
+for embedding a full document or a user query.",
+How do embeddings support retrieval in LangChain?,similarity,3,2,690c7d1c7215,A Survey on AGENTIC RAG.pdf,38,"retrieval-augmented large language models through question complexity, 2024.
+[36] LangGraph Adaptive RAG Tutorial. Langgraph adaptive rag: Adaptive retrieval-augmented generation tu-
+torial. https://langchain-ai.github.io/langgraph/tutorials/rag/langgraph_adaptive_rag/.
+Accessed: 2026-01-14.
+[37] Zhili Shen, Chenxin Diao, Pavlos V ougiouklis, Pascual Merita, Shriram Piramanayagam, Damien Graux, Dandan
+Tu, Zeren Jiang, Ruofei Lai, Yang Ren, and Jeff Z. Pan. Gear: Graph-enhanced agent for retrieval-augmented
+generation, 2024.
+38",
+How do embeddings support retrieval in LangChain?,similarity,3,3,8ce8648e0e63,langchain-retrieval-augmented-generation-white-paper.pdf,5,"explanation of each model. 
+3.2. Text Embedding Models 
+ 
+A fundamental part of RAG operation is text embedding. This is the process of converting a 
+sequence of words (text) into a sequence of vectors (numbers) that represent the information 
+contained in the words. Embeddings make it so deep learning models and other algorithms can 
+numerically calculate the relationships between pieces of text, allowing them to perform tasks 
+such as clustering or retrieval. In the case of RAG, embeddings are used to compare the user 
+input to the stored documents so the pipeline can retrieve the pieces of text that are similar to 
+the user query. It occurs at the “Embedding” stages in the pipeline diagram shown in Section 
+3.1.  
+ 
+ 
+Figure 3. Embedding models convert text into high-dimensional numerical vectors. 
+ 
+Converting a series of words into a series of vectors that contain the semantic meaning of the",
+How do embeddings support retrieval in LangChain?,similarity,5,1,6dabd9ca40ef,langchain-retrieval-augmented-generation-white-paper.pdf,16,"Text splitters break up a document into chunks of text. The size of the chunks can be specified 
+in the LangChain interface. The optimal chunk size is mainly determined by the size of the 
+model's context window. There are many types of text splitters. They differ in what the text splits 
+on (e.g. sentences, paragraphs, certain characters, code blocks). They also differ on how chunk 
+size is measured and how much they allow chunks to overlap. 
+ 
+Embedding Documents 
+The Embeddings module in LangChain provides a standard interface for loading and inference 
+with many different types of text embedding models. The base Embeddings class has methods 
+for embedding a full document or a user query.",
+How do embeddings support retrieval in LangChain?,similarity,5,2,690c7d1c7215,A Survey on AGENTIC RAG.pdf,38,"retrieval-augmented large language models through question complexity, 2024.
+[36] LangGraph Adaptive RAG Tutorial. Langgraph adaptive rag: Adaptive retrieval-augmented generation tu-
+torial. https://langchain-ai.github.io/langgraph/tutorials/rag/langgraph_adaptive_rag/.
+Accessed: 2026-01-14.
+[37] Zhili Shen, Chenxin Diao, Pavlos V ougiouklis, Pascual Merita, Shriram Piramanayagam, Damien Graux, Dandan
+Tu, Zeren Jiang, Ruofei Lai, Yang Ren, and Jeff Z. Pan. Gear: Graph-enhanced agent for retrieval-augmented
+generation, 2024.
+38",
+How do embeddings support retrieval in LangChain?,similarity,5,3,8ce8648e0e63,langchain-retrieval-augmented-generation-white-paper.pdf,5,"explanation of each model. 
+3.2. Text Embedding Models 
+ 
+A fundamental part of RAG operation is text embedding. This is the process of converting a 
+sequence of words (text) into a sequence of vectors (numbers) that represent the information 
+contained in the words. Embeddings make it so deep learning models and other algorithms can 
+numerically calculate the relationships between pieces of text, allowing them to perform tasks 
+such as clustering or retrieval. In the case of RAG, embeddings are used to compare the user 
+input to the stored documents so the pipeline can retrieve the pieces of text that are similar to 
+the user query. It occurs at the “Embedding” stages in the pipeline diagram shown in Section 
+3.1.  
+ 
+ 
+Figure 3. Embedding models convert text into high-dimensional numerical vectors. 
+ 
+Converting a series of words into a series of vectors that contain the semantic meaning of the",
+How do embeddings support retrieval in LangChain?,similarity,5,4,8e5bd0294acc,langchain-retrieval-augmented-generation-white-paper.pdf,16,"15 
+4.3.1. Indexing Stage 
+During the indexing stage, reference documentation is loaded, split into chunks, embedded into 
+vector data, and indexed in memory storage. 
+ 
+ 
+Figure 5. Loading, splitting, embedding, and storing documents during the indexing stage  
+ 
+Loading Documents 
+The first step of indexing is to load the reference documents into memory. LangChain has a 
+document_loaders component that parses a specific document and loads the full content of the 
+document into a data object inside the Python program. There are a variety of options for 
+loading different kinds of documents: PDFs, text files, Word, PowerPoint, YouTube 
+transcriptions, and many more. Once the documents are loaded, they can be converted to 
+vectors using an embedding model. 
+ 
+Splitting Documents 
+Text splitters break up a document into chunks of text. The size of the chunks can be specified 
+in the LangChain interface. The optimal chunk size is mainly determined by the size of the",
+How do embeddings support retrieval in LangChain?,similarity,5,5,a1a616ebf5c9,RAG_with_Deep_Agents_Corrected.pdf,13,"This completes the Indexing portion of the tutorial. You now have a queryable vector store containing chunked 
+LangChain documentation. 
+The next step is to build a Deep Agent that searches this index at run time, offloads retrieved chunks to the 
+filesystem, and delegates analysis to subagents. See [Build the agent](#build -the-agent). To think of it in RAG terms: 
+9. Retrieve: Given a user input, relevant splits are retrieved from storage using a Retriever 
+(/oss/python/integrations/retrievers). 
+10. Generate: A model (/oss/python/langchain/models) produces an answer using a prompt that includes both the 
+question and the retrieved data. 
+[Illustration: retrieval diagram] 
+Build the agent 
+Add this code to agent.py: 
+Add the search tool 
+The search_documentation tool runs similarity search against the indexed corpus, then writes each retrieved chunk 
+to the agent filesystem under /retrieved/{batch_id}/. It returns file paths so the orchestrator can delegate",
+How do embeddings support retrieval in LangChain?,mmr,3,1,6dabd9ca40ef,langchain-retrieval-augmented-generation-white-paper.pdf,16,"Text splitters break up a document into chunks of text. The size of the chunks can be specified 
+in the LangChain interface. The optimal chunk size is mainly determined by the size of the 
+model's context window. There are many types of text splitters. They differ in what the text splits 
+on (e.g. sentences, paragraphs, certain characters, code blocks). They also differ on how chunk 
+size is measured and how much they allow chunks to overlap. 
+ 
+Embedding Documents 
+The Embeddings module in LangChain provides a standard interface for loading and inference 
+with many different types of text embedding models. The base Embeddings class has methods 
+for embedding a full document or a user query.",
+How do embeddings support retrieval in LangChain?,mmr,3,2,690c7d1c7215,A Survey on AGENTIC RAG.pdf,38,"retrieval-augmented large language models through question complexity, 2024.
+[36] LangGraph Adaptive RAG Tutorial. Langgraph adaptive rag: Adaptive retrieval-augmented generation tu-
+torial. https://langchain-ai.github.io/langgraph/tutorials/rag/langgraph_adaptive_rag/.
+Accessed: 2026-01-14.
+[37] Zhili Shen, Chenxin Diao, Pavlos V ougiouklis, Pascual Merita, Shriram Piramanayagam, Damien Graux, Dandan
+Tu, Zeren Jiang, Ruofei Lai, Yang Ren, and Jeff Z. Pan. Gear: Graph-enhanced agent for retrieval-augmented
+generation, 2024.
+38",
+How do embeddings support retrieval in LangChain?,mmr,3,3,c5531bf7e7cb,RAG_with_Deep_Agents_Corrected.pdf,12,"RAG WITH DEEP AGENTS 
+Retrieval-Augmented Generation • Technical Reference 
+Milvus 
+    pip install -qU langchain-milvus 
+    from langchain_milvus import Milvus 
+    URI = ""./milvus_example.db"" 
+    vector_store = Milvus( 
+        embedding_function=embeddings, 
+        connection_args={""uri"": URI}, 
+        index_params={""index_type"": ""FLAT"", ""metric_type"": ""L2""}, 
+    ) 
+MongoDB 
+    pip install -qU langchain-mongodb 
+    from langchain_mongodb import MongoDBAtlasVectorSearch 
+    vector_store = MongoDBAtlasVectorSearch( 
+        embedding=embeddings, 
+        collection=MONGODB_COLLECTION, 
+        index_name=ATLAS_VECTOR_SEARCH_INDEX_NAME, 
+        relevance_score_fn=""cosine"", 
+    ) 
+PGVector 
+    pip install -qU langchain-postgres 
+    from langchain_postgres import PGVector 
+    vector_store = PGVector( 
+        embeddings=embeddings, 
+        collection_name=""my_docs"", 
+        connection=""postgresql+psycopg://..."", 
+    ) 
+PGVectorStore",
+How do embeddings support retrieval in LangChain?,mmr,5,1,6dabd9ca40ef,langchain-retrieval-augmented-generation-white-paper.pdf,16,"Text splitters break up a document into chunks of text. The size of the chunks can be specified 
+in the LangChain interface. The optimal chunk size is mainly determined by the size of the 
+model's context window. There are many types of text splitters. They differ in what the text splits 
+on (e.g. sentences, paragraphs, certain characters, code blocks). They also differ on how chunk 
+size is measured and how much they allow chunks to overlap. 
+ 
+Embedding Documents 
+The Embeddings module in LangChain provides a standard interface for loading and inference 
+with many different types of text embedding models. The base Embeddings class has methods 
+for embedding a full document or a user query.",
+How do embeddings support retrieval in LangChain?,mmr,5,2,690c7d1c7215,A Survey on AGENTIC RAG.pdf,38,"retrieval-augmented large language models through question complexity, 2024.
+[36] LangGraph Adaptive RAG Tutorial. Langgraph adaptive rag: Adaptive retrieval-augmented generation tu-
+torial. https://langchain-ai.github.io/langgraph/tutorials/rag/langgraph_adaptive_rag/.
+Accessed: 2026-01-14.
+[37] Zhili Shen, Chenxin Diao, Pavlos V ougiouklis, Pascual Merita, Shriram Piramanayagam, Damien Graux, Dandan
+Tu, Zeren Jiang, Ruofei Lai, Yang Ren, and Jeff Z. Pan. Gear: Graph-enhanced agent for retrieval-augmented
+generation, 2024.
+38",
+How do embeddings support retrieval in LangChain?,mmr,5,3,540435d3d1fe,RAG_with_Deep_Agents_Corrected.pdf,6,"(/oss/python/integrations/vectorstores) to index chunks and their embeddings for retrieval.  
+[Illustration: index diagram] 
+In the indexing step, fetch documentation pages, split them into chunks, embed the chunks, and store them in a 
+VectorStore. The agent searches this index at runtime; it does not re -fetch the full site on every question. 
+LangChain publishes markdown at https://docs.langchain.com/{path}.md. This tutorial indexes a curated list of 
+open source documentation paths. You can expand DOC_PATHS or parse URLs from llms.txt 
+(https://docs.langchain.com/llms.txt) to cover more pages.  
+Create agent.py: 
+import requests 
+from langchain_core.documents import Document 
+from langchain_core.vectorstores import InMemoryVectorStore 
+from langchain_openai import OpenAIEmbeddings 
+from langchain_text_splitters import RecursiveCharacterTextSplitter 
+DOCS_BASE = ""https://docs.langchain.com"" 
+Curated LangChain OSS pages for this tutorial. Expand this list 
+or parse",
+How do embeddings support retrieval in LangChain?,mmr,5,4,73e6280f3725,langchain-retrieval-augmented-generation-white-paper.pdf,7,"6 
+In the second stage, a rerank model, which is more accurate than the mathematical 
+comparison, is used to rank the top_k documents in order of relevance to the query and return 
+the “top_n” best documents (e.g. top_n = 5). Rerankers benefit from having the context of the 
+user query to better locate relevant information. They also require more processing than the 
+mathematical comparison used in the first stage. 
+ 
+ 
+Figure 4. In two-stage retrieval, rerank models take the top results identified by vector similarity and re -
+sort them in order of relevance to the input query 
+ 
+Here’s how two-stage retrieval works in the RAG pipeline: 
+● Chunks of a database of text is converted to vectors using a text embedding model 
+● A user query is converted to a vector 
+● The query vector is compared to the database vectors to identify the top_k most relevant 
+chunks of text in the database 
+● A reranker model sorts those top_k chunks in better order of relevance to the user query",
+How do embeddings support retrieval in LangChain?,mmr,5,5,c5531bf7e7cb,RAG_with_Deep_Agents_Corrected.pdf,12,"RAG WITH DEEP AGENTS 
+Retrieval-Augmented Generation • Technical Reference 
+Milvus 
+    pip install -qU langchain-milvus 
+    from langchain_milvus import Milvus 
+    URI = ""./milvus_example.db"" 
+    vector_store = Milvus( 
+        embedding_function=embeddings, 
+        connection_args={""uri"": URI}, 
+        index_params={""index_type"": ""FLAT"", ""metric_type"": ""L2""}, 
+    ) 
+MongoDB 
+    pip install -qU langchain-mongodb 
+    from langchain_mongodb import MongoDBAtlasVectorSearch 
+    vector_store = MongoDBAtlasVectorSearch( 
+        embedding=embeddings, 
+        collection=MONGODB_COLLECTION, 
+        index_name=ATLAS_VECTOR_SEARCH_INDEX_NAME, 
+        relevance_score_fn=""cosine"", 
+    ) 
+PGVector 
+    pip install -qU langchain-postgres 
+    from langchain_postgres import PGVector 
+    vector_store = PGVector( 
+        embeddings=embeddings, 
+        collection_name=""my_docs"", 
+        connection=""postgresql+psycopg://..."", 
+    ) 
+PGVectorStore",
+What RAG approaches are discussed in the agentic RAG survey?,similarity,3,1,e8dc4dcc56c7,A Survey on AGENTIC RAG.pdf,38,"[31] LangChain. Langgraph workflows tutorial, 2025. https://langchain-ai.github.io/langgraph/
+tutorials/workflows/. Accessed: January 18, 2026.
+[32] Weaviate Blog. What is agentic rag? https://weaviate.io/blog/what-is-agentic-rag#:~:text=is%
+20Agentic%20RAG%3F-,%E2%80%8B,of%20the%20non%2Dagentic%20pipeline.Accessed: 2026-01-14.
+[33] Shi-Qi Yan, Jia-Chen Gu, Yun Zhu, and Zhen-Hua Ling. Corrective retrieval augmented generation, 2024.
+[34] LangGraph CRAG Tutorial. Langgraph crag: Contextualized retrieval-augmented generation tutorial. https:
+//langchain-ai.github.io/langgraph/tutorials/rag/langgraph_crag/. Accessed: 2026-01-14.
+[35] Soyeong Jeong, Jinheon Baek, Sukmin Cho, Sung Ju Hwang, and Jong C. Park. Adaptive-rag: Learning to adapt
+retrieval-augmented large language models through question complexity, 2024.
+[36] LangGraph Adaptive RAG Tutorial. Langgraph adaptive rag: Adaptive retrieval-augmented generation tu-",
+What RAG approaches are discussed in the agentic RAG survey?,similarity,3,2,d3541e38b846,A Survey on AGENTIC RAG.pdf,2,"the system reasons over external evidence—coordinating retrieval, validating information, invoking tools, and refining
+responses—making Agentic RAG effective for complex, multi-domain tasks requiring precision and adaptability, as
+illustrated in Fig. 1.
+Despite rapidly growing interest, the Agentic RAG field remains fragmented, with diverse architectures, inconsistent
+terminology, and limited comparative understanding. Existing work focuses on individual frameworks or application-
+specific implementations, and no unified taxonomy currently organizes Agentic RAG systems along principled design
+dimensions.
+This paper presents an analytical survey aimed at structuring this emerging field. It reviews the evolution of RAG
+paradigms, including naïve, modular, and graph-based RAG [17], and their transition toward agentic systems. A princi-
+pled taxonomy of Agentic RAG architectures is introduced based on agent cardinality, control structure, autonomy, and",
+What RAG approaches are discussed in the agentic RAG survey?,similarity,3,3,16f2b4307912,langchain-retrieval-augmented-generation-white-paper.pdf,3,"2 
+There are several benefits to using RAG: 
+ 
+1. RAG increases the accuracy of LLM responses, because the LLM can directly reference 
+the set of information provided rather than relying on its general knowledge. 
+2. It significantly reduces the likelihood of hallucination and incorrect responses. If the 
+provided documentation does not have the information the user is looking for, the LLM 
+can simply say it doesn’t know the answer to the user’s query. 
+3. The LLM’s knowledge source can be updated in real time so it can stay current with 
+changes in information. 
+4. RAG responses are more transparent because they can include references to the 
+source of the information. 
+ 
+RAG allows companies to develop AI-enabled chatbots with specific knowledge of their product 
+or service without needing to go through the costly and time-consuming process of fine tuning. 
+For example, a health insurance company can provide an LLM with information about its health",
+What RAG approaches are discussed in the agentic RAG survey?,similarity,5,1,e8dc4dcc56c7,A Survey on AGENTIC RAG.pdf,38,"[31] LangChain. Langgraph workflows tutorial, 2025. https://langchain-ai.github.io/langgraph/
+tutorials/workflows/. Accessed: January 18, 2026.
+[32] Weaviate Blog. What is agentic rag? https://weaviate.io/blog/what-is-agentic-rag#:~:text=is%
+20Agentic%20RAG%3F-,%E2%80%8B,of%20the%20non%2Dagentic%20pipeline.Accessed: 2026-01-14.
+[33] Shi-Qi Yan, Jia-Chen Gu, Yun Zhu, and Zhen-Hua Ling. Corrective retrieval augmented generation, 2024.
+[34] LangGraph CRAG Tutorial. Langgraph crag: Contextualized retrieval-augmented generation tutorial. https:
+//langchain-ai.github.io/langgraph/tutorials/rag/langgraph_crag/. Accessed: 2026-01-14.
+[35] Soyeong Jeong, Jinheon Baek, Sukmin Cho, Sung Ju Hwang, and Jong C. Park. Adaptive-rag: Learning to adapt
+retrieval-augmented large language models through question complexity, 2024.
+[36] LangGraph Adaptive RAG Tutorial. Langgraph adaptive rag: Adaptive retrieval-augmented generation tu-",
+What RAG approaches are discussed in the agentic RAG survey?,similarity,5,2,d3541e38b846,A Survey on AGENTIC RAG.pdf,2,"the system reasons over external evidence—coordinating retrieval, validating information, invoking tools, and refining
+responses—making Agentic RAG effective for complex, multi-domain tasks requiring precision and adaptability, as
+illustrated in Fig. 1.
+Despite rapidly growing interest, the Agentic RAG field remains fragmented, with diverse architectures, inconsistent
+terminology, and limited comparative understanding. Existing work focuses on individual frameworks or application-
+specific implementations, and no unified taxonomy currently organizes Agentic RAG systems along principled design
+dimensions.
+This paper presents an analytical survey aimed at structuring this emerging field. It reviews the evolution of RAG
+paradigms, including naïve, modular, and graph-based RAG [17], and their transition toward agentic systems. A princi-
+pled taxonomy of Agentic RAG architectures is introduced based on agent cardinality, control structure, autonomy, and",
+What RAG approaches are discussed in the agentic RAG survey?,similarity,5,3,16f2b4307912,langchain-retrieval-augmented-generation-white-paper.pdf,3,"2 
+There are several benefits to using RAG: 
+ 
+1. RAG increases the accuracy of LLM responses, because the LLM can directly reference 
+the set of information provided rather than relying on its general knowledge. 
+2. It significantly reduces the likelihood of hallucination and incorrect responses. If the 
+provided documentation does not have the information the user is looking for, the LLM 
+can simply say it doesn’t know the answer to the user’s query. 
+3. The LLM’s knowledge source can be updated in real time so it can stay current with 
+changes in information. 
+4. RAG responses are more transparent because they can include references to the 
+source of the information. 
+ 
+RAG allows companies to develop AI-enabled chatbots with specific knowledge of their product 
+or service without needing to go through the costly and time-consuming process of fine tuning. 
+For example, a health insurance company can provide an LLM with information about its health",
+What RAG approaches are discussed in the agentic RAG survey?,similarity,5,4,725accb71d18,A Survey on AGENTIC RAG.pdf,9,"particular, Agentic RAG systems reduce latency through optimized workflows and refine outputs iteratively, tackling
+the very challenges that have historically hindered traditional RAG’s scalability and effectiveness.
+3 Core Principles and Background of Agentic Intelligence
+Agentic Intelligence forms the foundation of Agentic Retrieval-Augmented Generation (RAG) systems, enabling them
+to transcend the static and reactive nature of traditional RAG. By integrating autonomous agents capable of dynamic
+decision-making, iterative reasoning, and collaborative workflows, Agentic RAG systems exhibit enhanced adaptability
+and precision. This section explores the core principles underpinning agentic intelligence.
+Components of an AI Agent.In essence, an AI agent comprises (Figure. 7):
+•LLM (with defined Role and Task):Serves as the agent’s primary reasoning engine and dialogue interface.
+It interprets user queries, generates responses, and maintains coherence.",
+What RAG approaches are discussed in the agentic RAG survey?,similarity,5,5,1d2444415225,RAG_with_Deep_Agents_Corrected.pdf,1,"RAG WITH DEEP AGENTS 
+Retrieval-Augmented Generation • Technical Reference 
+Retrieval Augmented Generation (RAG)  
+with Deep Agents  
+Formatted technical reference • Based on the supplied source document 
+Includes concepts, setup instructions, implementation examples, security notes, and full code.",
+What RAG approaches are discussed in the agentic RAG survey?,mmr,3,1,e8dc4dcc56c7,A Survey on AGENTIC RAG.pdf,38,"[31] LangChain. Langgraph workflows tutorial, 2025. https://langchain-ai.github.io/langgraph/
+tutorials/workflows/. Accessed: January 18, 2026.
+[32] Weaviate Blog. What is agentic rag? https://weaviate.io/blog/what-is-agentic-rag#:~:text=is%
+20Agentic%20RAG%3F-,%E2%80%8B,of%20the%20non%2Dagentic%20pipeline.Accessed: 2026-01-14.
+[33] Shi-Qi Yan, Jia-Chen Gu, Yun Zhu, and Zhen-Hua Ling. Corrective retrieval augmented generation, 2024.
+[34] LangGraph CRAG Tutorial. Langgraph crag: Contextualized retrieval-augmented generation tutorial. https:
+//langchain-ai.github.io/langgraph/tutorials/rag/langgraph_crag/. Accessed: 2026-01-14.
+[35] Soyeong Jeong, Jinheon Baek, Sukmin Cho, Sung Ju Hwang, and Jong C. Park. Adaptive-rag: Learning to adapt
+retrieval-augmented large language models through question complexity, 2024.
+[36] LangGraph Adaptive RAG Tutorial. Langgraph adaptive rag: Adaptive retrieval-augmented generation tu-",
+What RAG approaches are discussed in the agentic RAG survey?,mmr,3,2,16f2b4307912,langchain-retrieval-augmented-generation-white-paper.pdf,3,"2 
+There are several benefits to using RAG: 
+ 
+1. RAG increases the accuracy of LLM responses, because the LLM can directly reference 
+the set of information provided rather than relying on its general knowledge. 
+2. It significantly reduces the likelihood of hallucination and incorrect responses. If the 
+provided documentation does not have the information the user is looking for, the LLM 
+can simply say it doesn’t know the answer to the user’s query. 
+3. The LLM’s knowledge source can be updated in real time so it can stay current with 
+changes in information. 
+4. RAG responses are more transparent because they can include references to the 
+source of the information. 
+ 
+RAG allows companies to develop AI-enabled chatbots with specific knowledge of their product 
+or service without needing to go through the costly and time-consuming process of fine tuning. 
+For example, a health insurance company can provide an LLM with information about its health",
+What RAG approaches are discussed in the agentic RAG survey?,mmr,3,3,0ef91959b785,A Survey on AGENTIC RAG.pdf,30,"Use Case: Patient Case Summary[40]
+Agentic RAG systems have been applied in generating patient case summaries. For example, by integrating electronic
+health records (EHR) and up-to-date medical literature, the system generates comprehensive summaries for clinicians
+to make faster and more informed decisions.
+Key Benefits:
+•Personalized Care: Tailors recommendations to individual patient needs.
+• Time Efficiency: Streamlines the retrieval of relevant research, saving valuable time for healthcare providers.
+•Accuracy: Ensures recommendations are based on the latest evidence and patient-specific parameters.
+7.3 Legal and Contract Analysis
+Agentic RAG systems are redefining how legal workflows are conducted, offering tools for rapid document analysis and
+decision-making.
+Use Case: Contract Review[41]
+A legal agentic RAG system can analyze contracts, extract critical clauses, and identify potential risks. By combining",
+What RAG approaches are discussed in the agentic RAG survey?,mmr,5,1,e8dc4dcc56c7,A Survey on AGENTIC RAG.pdf,38,"[31] LangChain. Langgraph workflows tutorial, 2025. https://langchain-ai.github.io/langgraph/
+tutorials/workflows/. Accessed: January 18, 2026.
+[32] Weaviate Blog. What is agentic rag? https://weaviate.io/blog/what-is-agentic-rag#:~:text=is%
+20Agentic%20RAG%3F-,%E2%80%8B,of%20the%20non%2Dagentic%20pipeline.Accessed: 2026-01-14.
+[33] Shi-Qi Yan, Jia-Chen Gu, Yun Zhu, and Zhen-Hua Ling. Corrective retrieval augmented generation, 2024.
+[34] LangGraph CRAG Tutorial. Langgraph crag: Contextualized retrieval-augmented generation tutorial. https:
+//langchain-ai.github.io/langgraph/tutorials/rag/langgraph_crag/. Accessed: 2026-01-14.
+[35] Soyeong Jeong, Jinheon Baek, Sukmin Cho, Sung Ju Hwang, and Jong C. Park. Adaptive-rag: Learning to adapt
+retrieval-augmented large language models through question complexity, 2024.
+[36] LangGraph Adaptive RAG Tutorial. Langgraph adaptive rag: Adaptive retrieval-augmented generation tu-",
+What RAG approaches are discussed in the agentic RAG survey?,mmr,5,2,d3541e38b846,A Survey on AGENTIC RAG.pdf,2,"the system reasons over external evidence—coordinating retrieval, validating information, invoking tools, and refining
+responses—making Agentic RAG effective for complex, multi-domain tasks requiring precision and adaptability, as
+illustrated in Fig. 1.
+Despite rapidly growing interest, the Agentic RAG field remains fragmented, with diverse architectures, inconsistent
+terminology, and limited comparative understanding. Existing work focuses on individual frameworks or application-
+specific implementations, and no unified taxonomy currently organizes Agentic RAG systems along principled design
+dimensions.
+This paper presents an analytical survey aimed at structuring this emerging field. It reviews the evolution of RAG
+paradigms, including naïve, modular, and graph-based RAG [17], and their transition toward agentic systems. A princi-
+pled taxonomy of Agentic RAG architectures is introduced based on agent cardinality, control structure, autonomy, and",
+What RAG approaches are discussed in the agentic RAG survey?,mmr,5,3,16f2b4307912,langchain-retrieval-augmented-generation-white-paper.pdf,3,"2 
+There are several benefits to using RAG: 
+ 
+1. RAG increases the accuracy of LLM responses, because the LLM can directly reference 
+the set of information provided rather than relying on its general knowledge. 
+2. It significantly reduces the likelihood of hallucination and incorrect responses. If the 
+provided documentation does not have the information the user is looking for, the LLM 
+can simply say it doesn’t know the answer to the user’s query. 
+3. The LLM’s knowledge source can be updated in real time so it can stay current with 
+changes in information. 
+4. RAG responses are more transparent because they can include references to the 
+source of the information. 
+ 
+RAG allows companies to develop AI-enabled chatbots with specific knowledge of their product 
+or service without needing to go through the costly and time-consuming process of fine tuning. 
+For example, a health insurance company can provide an LLM with information about its health",
+What RAG approaches are discussed in the agentic RAG survey?,mmr,5,4,5660e0ecdf17,A Survey on AGENTIC RAG.pdf,16,"response.
+4.Output Generation:
+• The system generates an actionable and concise response, providing live tracking updates and
+potential alternatives.
+Response:
+Integrated Response:“Your package is currently in transit and expected to arrive tomorrow evening. The live
+tracking from UPS indicates it is at the regional distribution center.”
+5.2 Multi-Agent Agentic RAG Systems:
+Multi-Agent RAG[ 32] represents a modular and scalable evolution of single-agent architectures, designed to handle
+complex workflows and diverse query types by leveraging multiple specialized agents (as shown in Figure 17). Instead
+of relying on a single agent to manage all tasks—reasoning, retrieval, and response generation—this system distributes
+responsibilities across multiple agents, each optimized for a specific role or data source.
+Workflow
+1. Query Submission: The process begins with a user query, which is received by acoordinator agentor master",
+What RAG approaches are discussed in the agentic RAG survey?,mmr,5,5,0ef91959b785,A Survey on AGENTIC RAG.pdf,30,"Use Case: Patient Case Summary[40]
+Agentic RAG systems have been applied in generating patient case summaries. For example, by integrating electronic
+health records (EHR) and up-to-date medical literature, the system generates comprehensive summaries for clinicians
+to make faster and more informed decisions.
+Key Benefits:
+•Personalized Care: Tailors recommendations to individual patient needs.
+• Time Efficiency: Streamlines the retrieval of relevant research, saving valuable time for healthcare providers.
+•Accuracy: Ensures recommendations are based on the latest evidence and patient-specific parameters.
+7.3 Legal and Contract Analysis
+Agentic RAG systems are redefining how legal workflows are conducted, offering tools for rapid document analysis and
+decision-making.
+Use Case: Contract Review[41]
+A legal agentic RAG system can analyze contracts, extract critical clauses, and identify potential risks. By combining",
