@@ -89,7 +89,8 @@ def main():
     print("\nResearch Insight Assistant is ready!")
     print("Ask questions about your PDFs.")
     print("Type 'exit' to stop.\n")
-
+    print("-" * 60)
+    
     while True:
         question = input("You: ").strip()
 
@@ -113,6 +114,7 @@ def main():
         print(result["answer"])
 
         print("\nSources:")
+        print("-" * 60)
 
         for i, doc in enumerate(
             result["documents"],
