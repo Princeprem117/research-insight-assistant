@@ -28,12 +28,12 @@ def format_docs(documents):
 
         formatted.append(
             f"[Source {i}]\n"
-            f"File: {source}\n"
+            f"File Name: {source}\n"
             f"Page: {page}\n"
             f"Content:\n{doc.page_content}"
         )
 
-    return "\n\n".join(formatted)
+    return "\n\n--\n\n".join(formatted)
 
 
 def get_question_text(data):
