@@ -4,7 +4,7 @@ from langchain_chroma import Chroma
 def create_retriever(vector_store: Chroma) -> BaseRetriever:
     retriever = vector_store.as_retriever(
         search_type = "mmr", 
-        search_kwargs = {"k": 3,
+        search_kwargs = {"k": 5,
                          "fetch_k": 10,
                          "lambda_mult": 0.5,
                          },
