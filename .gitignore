@@ -1,6 +1,7 @@
-*.pyc
+*.py[cod]
 
 .env
 .venv/
 __pycache__/
 data/chroma/
+data/raw
