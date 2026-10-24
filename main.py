@@ -1,83 +1,96 @@
+import hashlib
 from pathlib import Path
-from app.ingestion.loaders import load_pdf
+
+from app.ingestion.loaders import load_pdf_file
 from app.ingestion.splitter import split_documents
 from app.ingestion.embedder import create_embedding_model
-
-from app.vectorstore.store import create_vector_store
-
+from app.vectorstore.store import (
+    create_vector_store,
+    get_indexed_file_hashes,
+    get_source_chunk_ids,
+    add_pdf_chunks,
+    delete_chunks_by_ids,
+)
 from app.retrieval.retriever import create_retriever
-
 from app.generation.llm import create_llm
-from app.generation.prompt import create_rag_prompt , create_history_aware_prompt 
-
+from app.generation.prompt import (
+    create_rag_prompt,
+    create_history_aware_prompt,
+)
 from app.rag.chain import create_rag_chain
 
 from langchain_core.chat_history import InMemoryChatMessageHistory
 from langchain_core.runnables.history import RunnableWithMessageHistory
 
 
-data_directory = "data/raw"
+DATA_DIR = Path("data/raw")
+chat_store = {}
 
 
-# In-memory conversation store.
-# Each session ID has its own conversation history.
-store = {}
+def get_session_history(session_id):
+    if session_id not in chat_store:
+        chat_store[session_id] = InMemoryChatMessageHistory()
+    return chat_store[session_id]
 
 
-def get_session_history(session_id: str):
-    if session_id not in store:
-        store[session_id] = InMemoryChatMessageHistory()
+def file_hash(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
 
-    return store[session_id]
+
+def sync_index(vector_store):
+    if not DATA_DIR.is_dir():
+        raise FileNotFoundError(f"Directory not found: {DATA_DIR}")
+
+    pdfs = sorted(p.resolve() for p in DATA_DIR.glob("*.pdf"))
+    if not pdfs:
+        raise ValueError(f"No PDFs found in {DATA_DIR}")
+
+    indexed = get_indexed_file_hashes(vector_store)
+    current = {str(p) for p in pdfs}
+
+    # Remove PDFs that no longer exist.
+    for source in set(indexed) - current:
+        delete_chunks_by_ids(
+            vector_store,
+            get_source_chunk_ids(vector_store, source),
+        )
+        print(f"[INDEX] Deleted: {Path(source).name}")
+
+    # Add new PDFs and update changed PDFs.
+    for pdf in pdfs:
+        source = str(pdf)
+        digest = file_hash(pdf)
+
+        if indexed.get(source) == digest:
+            print(f"[INDEX] Unchanged: {pdf.name}")
+            continue
+
+        old_ids = get_source_chunk_ids(vector_store, source)
+
+        documents = load_pdf_file(pdf)
+        chunks = split_documents(documents)
+
+        add_pdf_chunks(vector_store, chunks, source, digest)
+        delete_chunks_by_ids(vector_store, old_ids)
+
+        action = "Updated" if source in indexed else "Added"
+        print(f"[INDEX] {action}: {pdf.name} ({len(chunks)} chunks)")
 
 
 def main():
-    # 1. Load all PDFs
-    documents = load_pdf(data_directory)
+    embeddings = create_embedding_model()
+    vector_store = create_vector_store(embeddings)
 
-    print(f"Loaded pages: {len(documents)}")
-    print(
-        "PDF source files:",
-        len({
-            doc.metadata.get("source")
-            for doc in documents
-        }),
-    )
+    sync_index(vector_store)
 
-    # 2. Split documents
-    chunks = split_documents(documents)
-    print(f"Created chunks: {len(chunks)}")
-
-    # 3. Create embeddings
-    embedding_model = create_embedding_model()
-
-    # 4. Create vector store
-    vector_store = create_vector_store(
-        chunks,
-        embedding_model,
-    )
-
-    # 5. Create retriever
-    retriever = create_retriever(vector_store)
-
-    # 6. Create LLM
-    llm = create_llm()
-
-    # 7. Create prompt
-    prompt = create_rag_prompt()
-
-    history_aware_prompt = create_history_aware_prompt()
-
-    # 8. Create RAG chain
     rag_chain = create_rag_chain(
-        retriever,
-        prompt,
-        llm,
-        history_aware_prompt = history_aware_prompt,
+        create_retriever(vector_store),
+        create_rag_prompt(),
+        create_llm(),
+        history_aware_prompt=create_history_aware_prompt(),
     )
 
-    
-    conversational_rag_chain = RunnableWithMessageHistory(
+    chat = RunnableWithMessageHistory(
         rag_chain,
         get_session_history,
         input_messages_key="question",
@@ -85,53 +98,28 @@ def main():
         output_messages_key="answer",
     )
 
-    # 9. Interactive question-answering loop
-    print("\nResearch Insight Assistant is ready!")
-    print("Ask questions about your PDFs.")
-    print("Type 'exit' to stop.\n")
-    print("-" * 60)
-    
+    print("\nResearch Insight Assistant ready! Type 'exit' to stop.")
+
     while True:
-        question = input("You: ").strip()
+        question = input("\nYou: ").strip()
 
         if question.lower() in {"exit", "quit"}:
-            print("Goodbye!")
             break
-
         if not question:
             continue
 
-        result = conversational_rag_chain.invoke(
+        result = chat.invoke(
             {"question": question},
-            config={
-                "configurable": {
-                    "session_id": "research-session"
-                }
-            },
+            config={"configurable": {"session_id": "research-session"}},
         )
 
-        print("\nAssistant:")
-        print(result["answer"])
-
+        print("\nAssistant:\n", result["answer"])
         print("\nSources:")
-        print("-" * 60)
 
-        for i, doc in enumerate(
-            result["documents"],
-            start=1,
-        ):
-            source = Path(
-                doc.metadata.get("source", "Unknown source")
-            ).name
-
-            page = doc.metadata.get(
-                "page_label",
-                doc.metadata.get("page", "Unknown"),
-            )
-
+        for i, doc in enumerate(result["documents"], 1):
+            source = Path(doc.metadata.get("source", "Unknown")).name
+            page = doc.metadata.get("page_label", doc.metadata.get("page", "?"))
             print(f"[Source {i}] {source} — Page {page}")
-
-        print("\n" + "-" * 60)
 
 
 if __name__ == "__main__":
