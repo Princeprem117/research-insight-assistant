@@ -101,9 +101,10 @@ def main():
     print("\nResearch Insight Assistant ready! Type 'exit' to stop.")
 
     while True:
-        question = input("\nYou: ").strip()
+        question = input("\n YOU: ").strip()
 
         if question.lower() in {"exit", "quit"}:
+            print("\nGoodbye!")
             break
         if not question:
             continue
@@ -113,8 +114,9 @@ def main():
             config={"configurable": {"session_id": "research-session"}},
         )
 
-        print("\nAssistant:\n", result["answer"])
+        print("\n ASSISTANT:\n", result["answer"])
         print("\nSources:")
+        print("-"*20)
 
         for i, doc in enumerate(result["documents"], 1):
             source = Path(doc.metadata.get("source", "Unknown")).name
