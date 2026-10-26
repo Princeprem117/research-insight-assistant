@@ -1,12 +1,10 @@
+
 import csv
 import hashlib
 from pathlib import Path
 
-from app.ingestion.loaders import load_pdf
-from app.ingestion.splitter import split_documents
 from app.ingestion.embedder import create_embedding_model
 from app.vectorstore.store import create_vector_store
-
 from app.evaluation.test_questions import TEST_QUESTIONS
 
 
@@ -15,25 +13,25 @@ OUTPUT_FILE = OUTPUT_DIR / "retrieval_comparison.csv"
 
 
 def chunk_id(document):
-    content = document.page_content
     return hashlib.sha1(
-        content.encode("utf-8")
+        document.page_content.encode("utf-8")
     ).hexdigest()[:12]
 
 
 def evaluate_retrieval():
-    # Build the index using your existing pipeline.
-    documents = load_pdf("data/raw")
-    chunks = split_documents(documents)
-
+    # Connect to the existing persistent Chroma collection.
     embedding_model = create_embedding_model()
-    vector_store = create_vector_store(
-        chunks,
-        embedding_model,
-    )
+    vector_store = create_vector_store(embedding_model)
+
+    # Check that the index contains documents.
+    collection = vector_store.get(include=["metadatas"])
+
+    if not collection.get("ids"):
+        raise ValueError(
+            "Chroma index is empty. Run main.py first to index your PDFs."
+        )
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-
     rows = []
 
     for question in TEST_QUESTIONS:
@@ -54,9 +52,7 @@ def evaluate_retrieval():
                         )
                     )
 
-                for rank, document in enumerate(
-                    retrieved, start=1
-                ):
+                for rank, document in enumerate(retrieved, start=1):
                     rows.append({
                         "question": question,
                         "search_type": search_type,
@@ -65,7 +61,10 @@ def evaluate_retrieval():
                         "chunk_id": chunk_id(document),
                         "source": Path(
                             document.metadata.get(
-                                "source", "Unknown"
+                                "source",
+                                document.metadata.get(
+                                    "source_path", "Unknown"
+                                ),
                             )
                         ).name,
                         "page": document.metadata.get(
@@ -100,9 +99,9 @@ def evaluate_retrieval():
         writer.writeheader()
         writer.writerows(rows)
 
-    print(f"Documents loaded: {len(documents)}")
-    print(f"Chunks indexed: {len(chunks)}")
-    print(f"Retrieved results exported: {len(rows)}")
+    print(f"Test questions: {len(TEST_QUESTIONS)}")
+    print(f"Configurations: 4 per question")
+    print(f"Retrieved chunks: {len(rows)}")
     print(f"Evaluation file: {OUTPUT_FILE}")
 
 
