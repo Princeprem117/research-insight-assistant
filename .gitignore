@@ -1,7 +1,9 @@
 *.py[cod]
-
 .env
 .venv/
 __pycache__/
 data/chroma/
 data/raw
+data/conversations.db
+data/conversations.db-shm
+data/conversations.db-wal
