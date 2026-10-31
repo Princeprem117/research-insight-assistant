@@ -3,7 +3,7 @@ import uuid
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request , File, UploadFile
 from pydantic import BaseModel, Field
 
 from app.rag.service import RAGService
@@ -151,3 +151,72 @@ def ask_question(payload: AskRequest, request: Request):
         answer=result["answer"],
         sources=sources,
     )
+
+
+MAX_PDF_SIZE = 20 * 1024 * 1024  # 20 MB
+
+
+@app.post("/upload")
+async def upload_pdf(
+    request: Request,
+    file: UploadFile = File(...),
+):
+    if not file.filename or Path(file.filename).suffix.lower() != ".pdf":
+        raise HTTPException(
+            status_code=400,
+            detail="Only PDF files are allowed.",
+        )
+
+    content = bytearray()
+
+    try:
+        while True:
+            chunk = await file.read(1024 * 1024)
+            if not chunk:
+                break
+
+            content.extend(chunk)
+
+            if len(content) > MAX_PDF_SIZE:
+                raise HTTPException(
+                    status_code=413,
+                    detail="PDF must be 20 MB or smaller.",
+                )
+
+        if not content.startswith(b"%PDF-"):
+            raise HTTPException(
+                status_code=400,
+                detail="The uploaded file is not a valid PDF.",
+            )
+
+        service = request.app.state.rag_service
+        upload_dir = Path(service.data_dir)
+        upload_dir.mkdir(parents=True, exist_ok=True)
+
+        # Keep existing files safe by generating a unique filename.
+        original_name = Path(file.filename).name
+        destination = upload_dir / original_name
+
+        if destination.exists():
+            destination = upload_dir / (
+                f"{destination.stem}_{uuid.uuid4().hex[:8]}.pdf"
+            )
+
+        destination.write_bytes(content)
+
+        try:
+            service.sync_index()
+        except Exception as exc:
+            print(f"PDF indexing failed: {exc}")
+            raise HTTPException(
+                status_code=500,
+                detail="Upload succeeded, but PDF indexing failed.",
+            ) from exc
+
+        return {
+            "message": "PDF uploaded and indexed successfully.",
+            "filename": destination.name,
+        }
+
+    finally:
+        await file.close()
