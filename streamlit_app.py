@@ -77,6 +77,62 @@ with st.sidebar:
         except requests.RequestException as exc:
             st.error(f"Could not create conversation: {exc}")
 
+    
+    st.divider()
+    st.subheader("📄 Research documents")
+
+    uploaded_file = st.file_uploader(
+        "Choose a PDF",
+        type=["pdf"],
+        key="pdf_uploader",
+    )
+
+    if st.button(
+        "Upload & Index",
+        disabled=uploaded_file is None,
+        use_container_width=True,
+    ):
+        try:
+            with st.spinner("Uploading and indexing PDF..."):
+                response = requests.post(
+                    f"{API_URL}/upload",
+                    files={
+                        "file": (
+                            uploaded_file.name,
+                            uploaded_file.getvalue(),
+                            "application/pdf",
+                        )
+                    },
+                    timeout=300,
+                )
+                response.raise_for_status()
+
+            result = response.json()
+            st.success(
+                f"Indexed successfully: {result['filename']}"
+            )
+
+        except requests.exceptions.ConnectionError:
+            st.error("Cannot connect to FastAPI.")
+
+        except requests.exceptions.Timeout:
+            st.error(
+                "Upload or indexing timed out. Check the FastAPI terminal."
+            )
+
+        except requests.exceptions.HTTPError:
+            try:
+                detail = response.json().get(
+                    "detail", "Upload failed."
+                )
+            except ValueError:
+                detail = "Upload failed."
+            st.error(detail)
+
+        except requests.exceptions.RequestException as exc:
+            st.error(f"Upload failed: {exc}")
+
+
     st.divider()
     st.subheader("Your conversations")
 
