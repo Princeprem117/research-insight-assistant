@@ -90,8 +90,6 @@ class RAGService:
             for p in self.data_dir.glob("*.pdf")
             if p.is_file()
         )
-        if not pdfs:
-            raise ValueError(f"No PDFs found in {self.data_dir}")
 
         indexed = get_indexed_file_hashes(self.vector_store)
         current = {str(p) for p in pdfs}
@@ -179,3 +177,66 @@ class RAGService:
             self.conversation_store.update_title(session_id, title)
 
         return result
+
+    
+    def list_documents(self):
+        indexed = get_indexed_file_hashes(self.vector_store)
+        documents = []
+
+        for source in sorted(indexed):
+            source_path = Path(source)
+            chunk_ids = get_source_chunk_ids(
+                self.vector_store, source
+            )
+
+            documents.append({
+                "filename": source_path.name,
+                "chunks": len(chunk_ids),
+            })
+
+        return documents
+
+    def delete_document(self, filename):
+        indexed = get_indexed_file_hashes(self.vector_store)
+
+        # Match only a filename that is currently indexed.
+        matches = [
+            source
+            for source in indexed
+            if Path(source).name == filename
+        ]
+
+        if not matches:
+            raise FileNotFoundError(
+                f"Indexed document not found: {filename}"
+            )
+
+        if len(matches) > 1:
+            raise ValueError(
+                f"More than one indexed document matches: {filename}"
+            )
+
+        source = matches[0]
+        source_path = Path(source).resolve()
+        data_dir = self.data_dir.resolve()
+
+        # Safety check: only delete files inside data/raw.
+        if source_path.parent != data_dir:
+            raise ValueError(
+                "Refusing to delete a file outside the PDF directory."
+            )
+
+        # Remove the original file first. sync_index() then detects
+        # the missing source and removes its Chroma chunks.
+        if source_path.exists():
+            source_path.unlink()
+
+        self.sync_index()
+
+        print(f"[INDEX] Document deleted: {filename}")
+
+        return {
+            "filename": filename,
+            "message": "Document and its indexed chunks were deleted.",
+        }
+
