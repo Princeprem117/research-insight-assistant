@@ -133,6 +133,71 @@ with st.sidebar:
             st.error(f"Upload failed: {exc}")
 
 
+ 
+    st.divider()
+    st.subheader("📚 Indexed documents")
+
+    try:
+        documents = api_get("/documents")
+
+        if not documents:
+            st.caption("No indexed PDFs yet.")
+
+        for document in documents:
+            filename = document["filename"]
+            chunks = document["chunks"]
+
+            st.write(f"**{filename}**")
+            st.caption(f"{chunks} indexed chunks")
+
+            confirm_key = f"confirm_delete_{filename}"
+
+            if st.button(
+                f"🗑️ Delete {filename}",
+                key=f"delete_{filename}",
+                use_container_width=True,
+            ):
+                st.session_state[confirm_key] = True
+
+            if st.session_state.get(confirm_key, False):
+                st.warning(
+                    f"Delete {filename} and remove its indexed chunks?"
+                )
+
+                confirm_col, cancel_col = st.columns(2)
+
+                with confirm_col:
+                    if st.button(
+                        "Confirm",
+                        key=f"confirm_{filename}",
+                        type="primary",
+                    ):
+                        try:
+                            response = requests.delete(
+                                f"{API_URL}/documents",
+                                params={"filename": filename},
+                                timeout=60,
+                            )
+                            response.raise_for_status()
+
+                            st.session_state[confirm_key] = False
+                            st.success(f"Deleted {filename}")
+                            st.rerun()
+
+                        except requests.exceptions.RequestException as exc:
+                            st.error(f"Delete failed: {exc}")
+
+                with cancel_col:
+                    if st.button(
+                        "Cancel",
+                        key=f"cancel_{filename}",
+                    ):
+                        st.session_state[confirm_key] = False
+                        st.rerun()
+
+    except requests.RequestException as exc:
+        st.error(f"Could not load indexed documents: {exc}")
+
     st.divider()
     st.subheader("Your conversations")
 
