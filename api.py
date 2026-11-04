@@ -220,3 +220,33 @@ async def upload_pdf(
 
     finally:
         await file.close()
+
+
+@app.get("/documents")
+def list_documents(request: Request):
+    service = request.app.state.rag_service
+    return service.list_documents()
+
+
+@app.delete("/documents")
+def delete_document(filename: str, request: Request):
+    service = request.app.state.rag_service
+
+    try:
+        return service.delete_document(filename)
+    except FileNotFoundError as exc:
+        raise HTTPException(
+            status_code=404,
+            detail=str(exc),
+        ) from exc
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=400,
+            detail=str(exc),
+        ) from exc
+    except Exception as exc:
+        print(f"Document deletion failed: {exc}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to delete the document and synchronize the index.",
+        ) from exc
