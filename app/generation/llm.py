@@ -11,9 +11,6 @@ def create_llm():
 
     api_key = os.getenv("OPENROUTER_APIKEY")
 
-    print("Key loaded:", bool(api_key))
-    print("Key prefix:", api_key[:10] if api_key else None)
-
     if not api_key:
         raise ValueError("OPENROUTER_APIKEY is not set in .env")
 
