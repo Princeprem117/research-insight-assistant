@@ -1,4 +1,3 @@
-
 import csv
 import json
 from pathlib import Path
@@ -155,11 +154,24 @@ def evaluate_answers():
         print(f"Retrieved chunks: {len(documents)}")
 
         # Evaluate the generated answer.
-        evaluation = evaluation_chain.invoke({
-            "question": question,
-            "context": context,
-            "answer": answer,
-        })
+        try:
+            evaluation = evaluation_chain.invoke({
+                "question": question,
+                "context": context,
+                "answer": answer,
+            })
+
+            evaluation = validate_result(evaluation)
+
+        except Exception as e:
+            print(f"[EVALUATION ERROR] {e}")
+
+            evaluation = {
+                "faithfulness_score": "",
+                "faithfulness_reason": "Evaluation failed due to API error.",
+                "relevance_score": "",
+                "relevance_reason": "Evaluation failed due to API error.",
+            }
 
         evaluation = validate_result(evaluation)
 
@@ -188,6 +200,9 @@ def evaluate_answers():
         )
 
     # 5. Save detailed results.
+def save_results(results):
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
     fieldnames = [
         "question",
         "answer",
@@ -203,14 +218,18 @@ def evaluate_answers():
         newline="",
         encoding="utf-8-sig",
     ) as csvfile:
-
         writer = csv.DictWriter(
             csvfile,
             fieldnames=fieldnames,
         )
-
         writer.writeheader()
         writer.writerows(results)
+
+    results.append({
+        # your existing result fields
+    })
+
+    save_results(results)
 
     # 6. Calculate average scores.
     average_faithfulness = sum(
