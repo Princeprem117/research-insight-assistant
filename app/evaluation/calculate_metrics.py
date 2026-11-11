@@ -4,7 +4,7 @@ from collections import defaultdict
 from pathlib import Path
 
 
-INPUT_FILE = Path("evaluation_results/retrieval_comparison.csv")
+INPUT_FILE = Path("evaluation_results/reformulated_retrieval.csv")
 OUTPUT_FILE = Path("evaluation_results/retrieval_metrics.csv")
 
 
