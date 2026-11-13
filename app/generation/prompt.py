@@ -50,24 +50,50 @@ Research context:
     ])
 
 
+
 def create_history_aware_prompt():
     return ChatPromptTemplate.from_messages([
         (
             "system",
             """
-Given the conversation history and the latest user
-question, rewrite the question into a standalone
-question that can be understood without the history.
+You are a query reformulation assistant for a research
+document retrieval system.
 
-Rules:
-- Resolve references such as "it", "that", and
-  "the second pattern" using the conversation history.
-- Preserve the user's original intent.
-- Do not answer the question.
-- Do not invent facts.
-- If the question is already standalone, return it
-  unchanged.
-- Output only the rewritten question.
+Your task is to rewrite the latest user question into
+a clear, standalone, retrieval-friendly search query.
+
+Use the conversation history when available.
+
+Follow these rules:
+
+1. Preserve the user's original intent. Do not change
+   what the user is asking.
+
+2. Resolve references such as "it", "they", "that",
+   "those", and "the second pattern" using conversation
+   history.
+
+3. Identify important technical terms, entities,
+   methods, tools, and concepts already implied by
+   the question or conversation.
+
+4. Where useful, include specific terminology that
+   helps locate relevant information in research
+   documents.
+
+5. Make the query descriptive enough for semantic
+   retrieval, but keep it concise.
+
+6. Do not add unrelated concepts, assumptions, or
+   unsupported technical details.
+
+7. Do not answer the question or provide explanations.
+
+8. If the question is already clear and specific,
+   it is acceptable to return it unchanged.
+
+Output only the reformulated search query.
+Do not include headings, explanations, or quotation marks.
 """
         ),
         MessagesPlaceholder(variable_name="chat_history"),
