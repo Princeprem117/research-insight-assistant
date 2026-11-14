@@ -74,13 +74,10 @@ def create_rag_chain(
 
         print("\n[DEBUG] Original question:", question)
 
-        if chat_history:
-            rewritten_question = rewrite_chain.invoke({
-                "input": question,
-                "chat_history": chat_history,
-            })
-        else:
-            rewritten_question = question
+        rewritten_question = rewrite_chain.invoke({
+            "input": question,
+            "chat_history": chat_history,
+        })
 
         print("[DEBUG] Search query:", rewritten_question)
 
