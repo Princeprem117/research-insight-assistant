@@ -18,7 +18,7 @@ from app.rag.chain import create_rag_chain, format_docs
 
 
 OUTPUT_DIR = Path("evaluation_results")
-OUTPUT_FILE = OUTPUT_DIR / "answer_quality.csv"
+OUTPUT_FILE = "evaluation_results/answer_quality_reformulated.csv"
 
 
 # LLM-as-a-judge evaluation prompt.
