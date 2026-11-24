@@ -11,6 +11,7 @@ from langchain_core.runnables import (
     RunnablePassthrough,
 )
 from langchain_openrouter import ChatOpenRouter
+from app.retrieval.reranker import create_reranker
 
 
 def format_docs(documents):
@@ -58,6 +59,7 @@ def create_rag_chain(
     prompt: ChatPromptTemplate,
     llm: ChatOpenRouter,
     history_aware_prompt: ChatPromptTemplate,
+    reranker_func=None,
 ):
     # 1. Build the query-rewriting chain.
     # We reproduce the standard history-aware behavior so
@@ -82,6 +84,11 @@ def create_rag_chain(
         print("[DEBUG] Search query:", rewritten_question)
 
         documents = retriever.invoke(rewritten_question)
+
+        if reranker_func:
+            print("[DEBUG] Reranking documents...")
+            documents = reranker_func(rewritten_question, documents)
+            print("[DEBUG] Reranked documents:", len(documents))
 
         print("[DEBUG] Retrieved documents:", len(documents))
 
