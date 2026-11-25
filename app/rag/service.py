@@ -42,7 +42,7 @@ class RAGService:
             create_rag_prompt(),
             create_llm(),
             history_aware_prompt=create_history_aware_prompt(),
-            reranker_func=self._get_reranker(),
+            reranker_func=None,  # Disabled for Railway free tier memory constraints
         )
 
         self.chat = RunnableWithMessageHistory(
