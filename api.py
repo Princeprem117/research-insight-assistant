@@ -21,6 +21,16 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# In api.py, add after line 22 (after app = FastAPI(...))
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows Streamlit domain
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class AskRequest(BaseModel):
     question: str = Field(min_length=1, max_length=2000)
