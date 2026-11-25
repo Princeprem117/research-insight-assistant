@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  # Backend API
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: research-assistant-api
+    ports:
+      - "8000:8000"
+    environment:
+      - OPENROUTER_APIKEY=${OPENROUTER_APIKEY}
+      - OPENROUTER_MODEL=${OPENROUTER_MODEL:-anthropic/claude-sonnet-4}
+      - CHROMA_PERSIST_DIRECTORY=/app/data/chroma
+      - DATA_DIR=/app/data/raw
+    volumes:
+      - chroma_data:/app/data/chroma
+      - raw_data:/app/data/raw
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Frontend (Streamlit)
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: research-assistant-frontend
+    ports:
+      - "8501:8501"
+    environment:
+      - API_URL=http://api:8000
+    depends_on:
+      api:
+        condition: service_healthy
+    command: >
+      sh -c "streamlit run streamlit_app.py
+      --server.port=8501
+      --server.address=0.0.0.0
+      --server.headless=true
+      --browser.gatherUsageStats=false"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  chroma_data:
+    driver: local
+  raw_data:
+    driver: local
+
+networks:
+  default:
+    name: research-assistant-network

@@ -102,6 +102,7 @@ def add_pdf_chunks(
     for index, chunk in enumerate(chunks):
         chunk.metadata["source_path"] = source_path
         chunk.metadata["file_hash"] = file_hash
+        chunk.metadata["chunk_id"] = f"{source_id}-{file_hash[:24]}-{index}"
 
         # Include the file hash so changed versions get new IDs.
         ids.append(

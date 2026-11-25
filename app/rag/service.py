@@ -42,6 +42,7 @@ class RAGService:
             create_rag_prompt(),
             create_llm(),
             history_aware_prompt=create_history_aware_prompt(),
+            reranker_func=self._get_reranker(),
         )
 
         self.chat = RunnableWithMessageHistory(
@@ -70,6 +71,12 @@ class RAGService:
             self.chat_histories[session_id] = history
 
         return self.chat_histories[session_id]
+
+    def _get_reranker(self):
+        """Create a reranker function for the RAG pipeline."""
+        from app.retrieval.reranker import create_reranker
+        r = create_reranker()
+        return r
 
     @staticmethod
     def file_hash(path):
@@ -159,9 +166,10 @@ class RAGService:
                     doc.metadata.get("page", "Unknown"),
                 )
             )
+            chunk_id = doc.metadata.get("chunk_id", doc.metadata.get("id", ""))
             if (file_name, page) not in seen:
                 seen.add((file_name, page))
-                sources.append({"file": file_name, "page": page})
+                sources.append({"file": file_name, "page": page, "chunk_id": chunk_id})
 
         self.conversation_store.add_message(
             session_id, "user", question

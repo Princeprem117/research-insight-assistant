@@ -34,6 +34,7 @@ class CreateConversationRequest(BaseModel):
 class Source(BaseModel):
     file: str
     page: str
+    chunk_id: str | None = None
 
 
 class AskResponse(BaseModel):
@@ -143,9 +144,11 @@ def ask_question(payload: AskRequest, request: Request):
             )
         )
 
+        chunk_id = doc.metadata.get("chunk_id", doc.metadata.get("id", ""))
+
         if (file_name, page) not in seen:
             seen.add((file_name, page))
-            sources.append(Source(file=file_name, page=page))
+            sources.append(Source(file=file_name, page=page, chunk_id=chunk_id))
 
     return AskResponse(
         answer=result["answer"],

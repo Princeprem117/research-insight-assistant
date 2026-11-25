@@ -27,14 +27,18 @@ def format_docs(documents):
             doc.metadata.get("page", "Unknown"),
         )
 
+        # Get additional metadata if available
+        source_path = doc.metadata.get("source_path", "")
+        file_hash = doc.metadata.get("file_hash", "")
+
         formatted.append(
             f"[Source {i}]\n"
-            f"File Name: {source}\n"
+            f"File: {source}\n"
             f"Page: {page}\n"
-            f"Content:\n{doc.page_content}"
+            f"Content: {doc.page_content}"
         )
 
-    return "\n\n--\n\n".join(formatted)
+    return "\n\n---\n\n".join(formatted)
 
 
 def get_question_text(data):
