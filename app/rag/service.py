@@ -88,9 +88,10 @@ class RAGService:
 
     def sync_index(self):
         if not self.data_dir.is_dir():
-            raise FileNotFoundError(
-                f"PDF directory not found: {self.data_dir}"
-            )
+            # Create directory if it doesn't exist (for first deploy on Railway/Render)
+            self.data_dir.mkdir(parents=True, exist_ok=True)
+            print(f"[INDEX] Created data directory: {self.data_dir}")
+            return  # No PDFs to index yet
 
         pdfs = sorted(
             p.resolve()
