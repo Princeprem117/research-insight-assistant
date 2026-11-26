@@ -3,7 +3,7 @@
 A conversational RAG (Retrieval-Augmented Generation) application that lets you upload research PDFs and ask questions about them. Built with LangChain, FastAPI, ChromaDB, and Streamlit.
 ## 🚀 Live Demo
 [**Try Research Insight Assistant →**]
-(https://research-insight-assistant-production.up.railway.app)  
+(https://research-insight-assistant-khapwiau4ctvrree5qjqbm.streamlit.app/)  
 *(Free tier — may take 10-20s to wake from sleep)*
 
 ## Overview
