@@ -7,3 +7,4 @@ data/raw
 data/conversations.db
 data/conversations.db-shm
 data/conversations.db-wal
+.claude
